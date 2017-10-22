@@ -8,7 +8,7 @@
 </head>
 <body>
 
-    
+
 
     <script type="text/javascript">
         function processImage() {
@@ -127,6 +127,19 @@
 
     }
 
+    function changeFont() {
+        var fon = document.getElementById("responseTextArea");
+        if (fon.className == "arial") {
+          fon.className = 'roman';
+        } else if(fon.className == "roman"){
+          fon.className = 'helvetica';
+        } else if(fon.className == "helvetica") {
+          fon.className = 'calibri';
+        }else {
+          fon.className = 'arial';
+        }
+    }
+
 
 
 </script>
@@ -145,6 +158,9 @@
     <button id ="increaseFont" onclick="increaseFont()">+</button>
 
     <button id ="decreaseFont" onclick="decreaseFont()">-</button>
+
+    <!-- <div id="posts" class="amatic">Content</div> -->
+    <button type="button" onclick="changeFont()">Change the font!</button>
 
     </div>
 
@@ -166,5 +182,7 @@
                 <img id="sourceImage" width="400" />
             </div>
         </div>
+
+
     </body>
     </html>
