@@ -32,21 +32,26 @@
 
     </div>
     
-    <div class="col-sm-8 text-left" style="height: 300px">
-      <h1>Welcome</h1>
+    <div class="col-sm-8 text-left" style="height: 650px">
       <textarea id="displayText" style="width:100%; height:100%;"></textarea>
-      <hr>
   </div>
   <div class="col-sm-2 sidenav">
-    <button id="create" onclick="download()">Create file</button> <a download="A11YText.txt" id="downloadlink" style="display: none">Download</a>
+    
 
+    <input type="text" name="inputImage" id="inputImage" value="https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Atomist_quote_from_Democritus.png/338px-Atomist_quote_from_Democritus.png" />
+<button onclick="processImage()" id ="readImage">Read image</button>
 
+<button id="create" onclick="download()">Create file</button> <a download="A11YText.txt" id="downloadlink" style="display: none">Download</a>
+
+<div id="imageDiv" style="width:150%; display:table-cell;">
+    
+    <br><br>
+    <img id="sourceImage" width="400" />
+</div>
   </div>
 
 </div>
 </div>
-
-
 
 
 <script type="text/javascript">
@@ -209,23 +214,12 @@
 <div id="upload"></div>
 
 
-
-
     <!-- <div id="posts" class="amatic">Content</div> -->
 
 
-Image to read: <input type="text" name="inputImage" id="inputImage" value="https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Atomist_quote_from_Democritus.png/338px-Atomist_quote_from_Democritus.png" />
-<button onclick="processImage()">Read image</button>
-<br><br>
-<div id="wrapper" style="width:1020px; display:table;">
-    <div id="jsonOutput" style="width:600px; display:table-cell;">
-    </div>
-            <div id="imageDiv" style="width:420px; display:table-cell;">
-                Source image:
-                <br><br>
-                <img id="sourceImage" width="400" />
-            </div>
-        </div>
+
+
+
 
 
     </body>

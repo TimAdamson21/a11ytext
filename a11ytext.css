@@ -92,7 +92,7 @@ input:checked + .slider:before {
     }
 
     /* Set height of the grid so .sidenav can be 100% (adjust as needed) */
-    .row.content {height: 450px}
+    .row.content {height: 700px}
 
     /* Set gray background color and 100% height */
     .sidenav {
@@ -131,3 +131,17 @@ input:checked + .slider:before {
 
     padding: 10px;
   }
+
+  #sourceImage {
+
+    width: 75%; /*can be in percentage also.*/
+    height: auto;
+    margin: 0 auto;
+    padding: 10px;
+    position: relative;
+
+
+  }
+  #readImage {
+
+margin-top: 8px;  }
