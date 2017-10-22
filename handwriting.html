@@ -3,25 +3,11 @@
 <head>
     <title>Handwriting Sample</title>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/superagent/3.5.2/superagent.min.js"></script>
 </head>
-<body>
+<body onload="setup()">
 
 <script type="text/javascript">
-   function handleFiles(files){
-        var file = files[0];
-        console.log(file);
-
-        processImage(file);
-    }
-
-    function processOnlineImage(){
-        var sourceImageUrl = document.getElementById("inputImage").value;
-        var imageData = '{"url": ' + '"' + sourceImageUrl + '"}'
-        processImage(imageData);
-    }
-
-    function processImage(imageData) {
+    function processImage() {
         // **********************************************
         // *** Update or verify the following values. ***
         // **********************************************
@@ -45,86 +31,13 @@
         };
 
         // Display the image.
-
+        var sourceImageUrl = document.getElementById("inputImage").value;
+        document.querySelector("#sourceImage").src = sourceImageUrl;
 
         // This operation requrires two REST API calls. One to submit the image for processing,
-
-        // the other to retrieve the text found in the image. 
+        // the other to retrieve the text found in the image.
         //
         // Perform the first REST API call to submit the image for processing.
-
-
-        superagent
-            .post(uriBase + "?" + $.param(params))
-
-            .set("Content-Type", "application/octet-stream")
-
-            .set("x-ms-version", "2017-04-17")
-
-            .set("x-ms-blob-type", "BlockBlob")
-
-            .set("x-ms-blob-content-type", imageData.type)
-
-            .set("Ocp-Apim-Subscription-Key", subscriptionKey)
-
-            .send(imageData)
-
-            .end(function(err, res) {
-
-                if (err) {
-
-                    console.log(err);
-
-                    console.dir(res);
-
-                } else {
-                    $("#responseTextArea").val("Handwritten text submitted. Waiting 10 seconds to retrieve the recognized text.");
-
-                    // Note: The response may not be immediately available. Handwriting recognition is an
-                    // async operation that can take a variable amount of time depending on the length
-                    // of the text you want to recognize. You may need to wait or retry this GET operation.
-                    //
-                    // Wait ten seconds before making the second REST API call.
-
-                    setTimeout(function () {
-
-                        // The "Operation-Location" in the response contains the URI to retrieve the recognized text.
-                        var operationLocation = jqXHR.getResponseHeader("Operation-Location");
-
-                        // Perform the second REST API call and get the response.
-                        $.ajax({
-                            url: operationLocation,
-
-                            // Request headers.
-                            beforeSend: function(jqXHR){
-                                jqXHR.setRequestHeader("Content-Type","application/json");
-                                jqXHR.setRequestHeader("Ocp-Apim-Subscription-Key", subscriptionKey);
-                            },
-
-                            type: "GET",
-                        })
-
-                            .done(function(data) {
-                                // Show formatted JSON on webpage.
-                                $("#responseTextArea").val(JSON.stringify(data, null, 2));
-                            })
-
-                            .fail(function(jqXHR, textStatus, errorThrown) {
-                                // Display error message.
-                                var errorString = (errorThrown === "") ? "Error. " : errorThrown + " (" + jqXHR.status + "): ";
-                                errorString += (jqXHR.responseText === "") ? "" : (jQuery.parseJSON(jqXHR.responseText).message) ?
-                                    jQuery.parseJSON(jqXHR.responseText).message : jQuery.parseJSON(jqXHR.responseText).error.message;
-                                alert(errorString);
-                            });
-                    }, 10000);
-
-                }
-
-            });
-
-
-/*
-
         $.ajax({
             url: uriBase + "?" + $.param(params),
 
@@ -135,11 +48,9 @@
             },
 
             type: "POST",
-            contentType: 'application/octet-stream',
-            // Request body.
-            processData: false,
-            data: imageData
 
+            // Request body.
+            data: '{"url": ' + '"' + sourceImageUrl + '"}',
         })
 
         .done(function(data, textStatus, jqXHR) {
@@ -151,9 +62,7 @@
             // of the text you want to recognize. You may need to wait or retry this GET operation.
             //
             // Wait ten seconds before making the second REST API call.
-
-            setTimeout(function () { 
-
+            setTimeout(function () {
                 // The "Operation-Location" in the response contains the URI to retrieve the recognized text.
                 var operationLocation = jqXHR.getResponseHeader("Operation-Location");
 
@@ -190,14 +99,11 @@
                 .fail(function(jqXHR, textStatus, errorThrown) {
                     // Display error message.
                     var errorString = (errorThrown === "") ? "Error. " : errorThrown + " (" + jqXHR.status + "): ";
-                    errorString += (jqXHR.responseText === "") ? "" : (jQuery.parseJSON(jqXHR.responseText).message) ? 
+                    errorString += (jqXHR.responseText === "") ? "" : (jQuery.parseJSON(jqXHR.responseText).message) ?
                         jQuery.parseJSON(jqXHR.responseText).message : jQuery.parseJSON(jqXHR.responseText).error.message;
                     alert(errorString);
                 });
             }, 10000);
-
-
-
         })
 
         .fail(function(jqXHR, textStatus, errorThrown) {
@@ -206,22 +112,30 @@
 
             // Display error message.
             var errorString = (errorThrown === "") ? "Error. " : errorThrown + " (" + jqXHR.status + "): ";
-            errorString += (jqXHR.responseText === "") ? "" : (jQuery.parseJSON(jqXHR.responseText).message) ? 
+            errorString += (jqXHR.responseText === "") ? "" : (jQuery.parseJSON(jqXHR.responseText).message) ?
                 jQuery.parseJSON(jqXHR.responseText).message : jQuery.parseJSON(jqXHR.responseText).error.message;
             alert(errorString);
         });
-        */
-
-
     };
+</script>
+
+<script>
+            function setup() {
+                document.getElementById('buttonid').addEventListener('click', openDialog);
+                function openDialog() {
+                    document.getElementById('fileid').click();
+                }
+                document.getElementById('fileid').addEventListener('change', submitForm);
+                function submitForm() {
+                    document.getElementById('formid').submit();
+                }
+            }
 </script>
 <h1>Read handwritten image image:</h1>
 Enter the URL to an image of handwritten text, then click the <strong>Read image</strong> button.
 <br><br>
 Image to read: <input type="text" name="inputImage" id="inputImage" value="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Cursive_Writing_on_Notebook_paper.jpg/800px-Cursive_Writing_on_Notebook_paper.jpg" />
-<button onclick="processOnlineImage()">Read image</button>
-<br><br>
-<input type="file" id="input" multiple onchange="handleFiles(this.files)">
+<button onclick="processImage()">Read image</button>
 <br><br>
 <div id="wrapper" style="width:1020px; display:table;">
     <div id="jsonOutput" style="width:600px; display:table-cell;">
@@ -235,6 +149,11 @@ Image to read: <input type="text" name="inputImage" id="inputImage" value="https
         <img id="sourceImage" width="400" />
     </div>
 </div>
+
+<form id='formid' action="form.php" method="POST" enctype="multipart/form-data">
+    <input id='fileid' type='file' name='filename' hidden/>
+    <input id='buttonid' type='button' value='Upload MB' />
+    <input type='submit' value='Submit' />
+</form>
 </body>
 </html>
-
