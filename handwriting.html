@@ -8,20 +8,299 @@
 <body>
 
 <script type="text/javascript">
-   function handleFiles(files){
-        var file = files[0];
-        console.log(file);
+    //////////////////////////////////////////////
 
-        processImage(file);
+
+    if (typeof exports === "undefined") {
+        var exports = {};
     }
 
+    if (typeof module === "undefined") {
+        var module = {};
+    }
+
+    Object.defineProperty(exports, '__esModule', {
+        value: true
+    });
+
+    var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+    function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+    var hasBlobConstructor = typeof Blob !== 'undefined' && (function () {
+        try {
+            return Boolean(new Blob());
+        } catch (e) {
+            return false;
+        }
+    })();
+
+    var hasArrayBufferViewSupport = hasBlobConstructor && typeof Uint8Array !== 'undefined' && (function () {
+        try {
+            return new Blob([new Uint8Array(100)]).size === 100;
+        } catch (e) {
+            return false;
+        }
+    })();
+
+    var hasToBlobSupport = typeof HTMLCanvasElement !== "undefined" ? HTMLCanvasElement.prototype.toBlob : false;
+
+    var hasBlobSupport = hasToBlobSupport || typeof Uint8Array !== 'undefined' && typeof ArrayBuffer !== 'undefined' && typeof atob !== 'undefined';
+
+    var hasReaderSupport = typeof FileReader !== 'undefined' || typeof URL !== 'undefined';
+
+    var ImageTools = (function () {
+        function ImageTools() {
+            _classCallCheck(this, ImageTools);
+        }
+
+        _createClass(ImageTools, null, [{
+            key: 'resize',
+            value: function resize(file, maxDimensions, callback) {
+                if (typeof maxDimensions === 'function') {
+                    callback = maxDimensions;
+                    maxDimensions = {
+                        width: 640,
+                        height: 480
+                    };
+                }
+
+                var maxWidth = maxDimensions.width;
+                var maxHeight = maxDimensions.height;
+
+                if (!ImageTools.isSupported() || !file.type.match(/image.*/)) {
+                    callback(file, false);
+                    return false;
+                }
+
+                if (file.type.match(/image\/gif/)) {
+                    // Not attempting, could be an animated gif
+                    callback(file, false);
+                    // TODO: use https://github.com/antimatter15/whammy to convert gif to webm
+                    return false;
+                }
+
+                var image = document.createElement('img');
+
+                image.onload = function (imgEvt) {
+                    var width = image.width;
+                    var height = image.height;
+                    var isTooLarge = false;
+
+                    if (width > height && width > maxDimensions.width) {
+                        // width is the largest dimension, and it's too big.
+                        height *= maxDimensions.width / width;
+                        width = maxDimensions.width;
+                        isTooLarge = true;
+                    } else if (height > maxDimensions.height) {
+                        // either width wasn't over-size or height is the largest dimension
+                        // and the height is over-size
+                        width *= maxDimensions.height / height;
+                        height = maxDimensions.height;
+                        isTooLarge = true;
+                    }
+
+                    if (!isTooLarge) {
+                        // early exit; no need to resize
+                        callback(file, false);
+                        return;
+                    }
+
+                    var canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    var ctx = canvas.getContext('2d');
+                    ctx.drawImage(image, 0, 0, width, height);
+
+                    if (hasToBlobSupport) {
+                        canvas.toBlob(function (blob) {
+                            callback(blob, true);
+                        }, file.type);
+                    } else {
+                        var blob = ImageTools._toBlob(canvas, file.type);
+                        callback(blob, true);
+                    }
+                };
+                ImageTools._loadImage(image, file);
+
+                return true;
+            }
+        }, {
+            key: '_toBlob',
+            value: function _toBlob(canvas, type) {
+                var dataURI = canvas.toDataURL(type);
+                var dataURIParts = dataURI.split(',');
+                var byteString = undefined;
+                if (dataURIParts[0].indexOf('base64') >= 0) {
+                    // Convert base64 to raw binary data held in a string:
+                    byteString = atob(dataURIParts[1]);
+                } else {
+                    // Convert base64/URLEncoded data component to raw binary data:
+                    byteString = decodeURIComponent(dataURIParts[1]);
+                }
+                var arrayBuffer = new ArrayBuffer(byteString.length);
+                var intArray = new Uint8Array(arrayBuffer);
+
+                for (var i = 0; i < byteString.length; i += 1) {
+                    intArray[i] = byteString.charCodeAt(i);
+                }
+
+                var mimeString = dataURIParts[0].split(':')[1].split(';')[0];
+                var blob = null;
+
+                if (hasBlobConstructor) {
+                    blob = new Blob([hasArrayBufferViewSupport ? intArray : arrayBuffer], { type: mimeString });
+                } else {
+                    var bb = new BlobBuilder();
+                    bb.append(arrayBuffer);
+                    blob = bb.getBlob(mimeString);
+                }
+
+                return blob;
+            }
+        }, {
+            key: '_loadImage',
+            value: function _loadImage(image, file, callback) {
+                if (typeof URL === 'undefined') {
+                    var reader = new FileReader();
+                    reader.onload = function (evt) {
+                        image.src = evt.target.result;
+                        if (callback) {
+                            callback();
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    image.src = URL.createObjectURL(file);
+                    if (callback) {
+                        callback();
+                    }
+                }
+            }
+        }, {
+            key: 'isSupported',
+            value: function isSupported() {
+                return typeof HTMLCanvasElement !== 'undefined' && hasBlobSupport && hasReaderSupport;
+            }
+        }]);
+
+        return ImageTools;
+    })();
+
+    exports['default'] = ImageTools;
+    module.exports = exports['default'];
+
+    ////////////////////////////////////////////////
+
+
+    function dataURLtoFile(dataurl, filename) {
+        var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+            bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+        while(n--){
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new File([u8arr], filename, {type:mime});
+    }
+
+    function b64toBlob(b64Data, contentType, sliceSize) {
+        contentType = contentType || '';
+        sliceSize = sliceSize || 512;
+
+        var byteCharacters = atob(b64Data);
+        var byteArrays = [];
+
+        for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+            var slice = byteCharacters.slice(offset, offset + sliceSize);
+
+            var byteNumbers = new Array(slice.length);
+            for (var i = 0; i < slice.length; i++) {
+                byteNumbers[i] = slice.charCodeAt(i);
+            }
+
+            var byteArray = new Uint8Array(byteNumbers);
+
+            byteArrays.push(byteArray);
+        }
+
+        var blob = new Blob(byteArrays, {type: contentType});
+        return blob;
+    }
+
+   function handleFiles(files){
+        var file = files[0];
+        var type = file.type;
+        console.log(type);
+
+        if(type === "image/jpeg" || type === "image/png"){
+            console.log("You uploaded an image");
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                $('#sourceImage')
+                    .attr('src', e.target.result);
+            };
+            reader.readAsDataURL(file);
+            processImage(file);
+        }
+
+        else if(type === "application/pdf"){
+            console.log("You uploaded a pdf");
+            processPDF(file);
+        }
+        else{
+            console.error("Illegal file type");
+        }
+    }
+
+    
+    function processPDF(pdfFile){
+        var formData = new FormData();
+        formData.append('File', pdfFile, pdfFile.name);
+        formData.append('JpgQuality', '50');
+        formData.append('ImageResolutionH', '200');
+        formData.append('ImageResolutionV', '200');
+
+        $.ajax({
+            url: 'https://v2.convertapi.com/pdf/to/jpg?Secret=DrS0i33shLt0ZnHj',
+            data: formData,
+            processData: false,
+            contentType: false,
+            method: 'POST',
+            success: function(data) {
+                console.log("We had success!");
+                console.log(data);
+                var urlString = "data:text/plain;base64," + data.Files[0].FileData;
+
+                /*
+                var blob = b64toBlob(data.Files[0].FileData, "image/jpeg")
+                console.log(blob);
+                var file = new File(blob, "image111.jpg");
+                */
+
+                var file = dataURLtoFile(urlString, "hello.txt");
+
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#sourceImage')
+                        .attr('src', e.target.result);
+                };
+                reader.readAsDataURL(file);
+
+                console.log(file);
+                processImage(file);
+            }
+        })
+
+
+    }
+    
     function processOnlineImage(){
         var sourceImageUrl = document.getElementById("inputImage").value;
         var imageData = '{"url": ' + '"' + sourceImageUrl + '"}'
         processImage(imageData);
     }
 
-    function processImage(imageData) {
+    function processImage(imageFile) {
         // **********************************************
         // *** Update or verify the following values. ***
         // **********************************************
@@ -63,11 +342,11 @@
 
             .set("x-ms-blob-type", "BlockBlob")
 
-            .set("x-ms-blob-content-type", imageData.type)
+            .set("x-ms-blob-content-type", imageFile.type)
 
             .set("Ocp-Apim-Subscription-Key", subscriptionKey)
 
-            .send(imageData)
+            .send(imageFile)
 
             .end(function(err, res) {
 
@@ -110,11 +389,11 @@
                                 // Show formatted JSON on webpage.
                                 // $("#responseTextArea").val(JSON.stringify(data, null, 2));
 
-                                obj = JSON.parse(JSON.stringify(data, null, 2));
+                               var obj = JSON.parse(JSON.stringify(data, null, 2));
 
                                 var lines = obj.recognitionResult.lines.sort((a, b) => a.boundingBox[1] - b.boundingBox[1]);
 
-                                s = '';
+                               var s = '';
 
                                 for(var i = 0; i < lines.length; i+=1) {
                                     var line = lines[i];
@@ -154,7 +433,7 @@
             contentType: 'application/octet-stream',
             // Request body.
             processData: false,
-            data: imageData
+            data: imageFile
 
         })
 
