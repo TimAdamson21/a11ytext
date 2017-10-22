@@ -8,25 +8,6 @@
 </head>
 <body>
 
-    <nav class="navbar navbar-inverse">
-      <div class="container-fluid">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="#">A11YText</a>
-    </div>
-    <div class="collapse navbar-collapse" id="myNavbar">
-      <ul class="nav navbar-nav">
-        <li class="active"><a href="#">Home</a></li>
-
-    </ul>
-
-</div>
-</div>
-</nav>
 
 <div class="container-fluid text-center">
   <div class="row content">
@@ -44,16 +25,21 @@
             <button class="btn btn-primary" id ="decreaseFont" onclick="decreaseFont()">-</button>
         </div>
 
+        <div id ="fontChange">
         <button type="button" onclick="changeFont()">Change the font!</button>
-
+        </div>
+        
 
     </div>
+    
     <div class="col-sm-8 text-left" style="height: 300px">
       <h1>Welcome</h1>
       <textarea id="displayText" style="width:100%; height:100%;"></textarea>
       <hr>
   </div>
   <div class="col-sm-2 sidenav">
+    <button id="create" onclick="download()">Create file</button> <a download="A11YText.txt" id="downloadlink" style="display: none">Download</a>
+
 
   </div>
 
@@ -222,7 +208,6 @@
 <div id="upload"></div>
 
 
-<button id="create" onclick="download()">Create file</button> <a download="A11YText.txt" id="downloadlink" style="display: none">Download</a>
 
 
     <!-- <div id="posts" class="amatic">Content</div> -->
