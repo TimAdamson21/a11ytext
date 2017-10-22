@@ -11,7 +11,14 @@
    function handleFiles(files){
         var file = files[0];
         console.log(file);
+        var reader = new FileReader();
 
+        reader.onload = function (e) {
+            $('#sourceImage')
+                .attr('src', e.target.result);
+        };
+
+        reader.readAsDataURL(file);
         processImage(file);
     }
 
@@ -230,13 +237,26 @@
 
 
     };
+
+    // function readURL(input) {
+    //     if (input.files && input.files[0]) {
+    //         var reader = new FileReader();
+    //
+    //         reader.onload = function (e) {
+    //             $('#sourceImage')
+    //                 .attr('src', e.target.result);
+    //         };
+    //
+    //         reader.readAsDataURL(input.files[0]);
+    //     }
+    // }
 </script>
 <h1>Read handwritten image image:</h1>
-Enter the URL to an image of handwritten text, then click the <strong>Read image</strong> button.
-<br><br>
-Image to read: <input type="text" name="inputImage" id="inputImage" value="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Cursive_Writing_on_Notebook_paper.jpg/800px-Cursive_Writing_on_Notebook_paper.jpg" />
-<button onclick="processOnlineImage()">Read image</button>
-<br><br>
+<!-- Enter the URL to an image of handwritten text, then click the <strong>Read image</strong> button. -->
+<!-- <br><br> -->
+<!-- Image to read: <input type="text" name="inputImage" id="inputImage" value="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Cursive_Writing_on_Notebook_paper.jpg/800px-Cursive_Writing_on_Notebook_paper.jpg" /> -->
+<!-- <button onclick="processOnlineImage()">Read image</button> -->
+<!-- <br><br> -->
 <input type="file" id="input" multiple onchange="handleFiles(this.files)">
 <br><br>
 <div id="wrapper" style="width:1020px; display:table;">
@@ -248,7 +268,7 @@ Image to read: <input type="text" name="inputImage" id="inputImage" value="https
     <div id="imageDiv" style="width:420px; display:table-cell;">
         Source image:
         <br><br>
-        <img id="sourceImage" width="400" />
+          <img id="sourceImage" width="400" />
     </div>
 </div>
 </body>
