@@ -1,4 +1,14 @@
 /* The switch - the box around the slider */
+
+
+.btn btn-primary {
+
+  position: relative;
+
+  clear: both;
+  display: inline-block;
+}
+
 .switch {
   position: relative;
   display: inline-block;
@@ -90,3 +100,13 @@ input:checked + .slider:before {
       }
       .row.content {height:auto;} 
     }
+
+    textarea { 
+    border: none;
+    overflow: auto;
+    outline: none;
+
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;     
+  }
