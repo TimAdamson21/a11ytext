@@ -172,7 +172,19 @@
 
                 .done(function(data) {
                     // Show formatted JSON on webpage.
-                    $("#responseTextArea").val(JSON.stringify(data, null, 2));
+                    // $("#responseTextArea").val(JSON.stringify(data, null, 2));
+
+                    obj = JSON.parse(JSON.stringify(data, null, 2));
+
+                    var lines = obj.recognitionResult.lines.sort((a, b) => a.boundingBox[1] - b.boundingBox[1]);
+
+                    s = '';
+
+                    for(i = 0; i < lines.length; i+=1) {
+                      var line = lines[i];
+                      s += line.text + '\n';
+                    }
+                    $("#responseTextArea").val(s);
                 })
 
                 .fail(function(jqXHR, textStatus, errorThrown) {
