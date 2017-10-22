@@ -8,9 +8,8 @@
 </head>
 <body>
 
-   
 
-<div class="container-fluid text-center">    
+<div class="container-fluid text-center">
   <div class="row content">
     <div class="col-sm-2 sidenav">
 
@@ -25,12 +24,14 @@
             <button class="btn btn-primary" id ="increaseFont" onclick="increaseFont()">+</button>
             <button class="btn btn-primary" id ="decreaseFont" onclick="decreaseFont()">-</button>
         </div>
-
+        <button type="button" onclick="changeFont()">Change the font!</button>
         
         
 
     </div>
-    <div class="col-sm-8 text-left" style="height: 300px"> 
+    
+    <div class="col-sm-8 text-left" style="height: 300px">
+      <h1>Welcome</h1>
       <textarea id="displayText" style="width:100%; height:100%;"></textarea>
       <hr>
   </div>
@@ -39,8 +40,11 @@
 
 
   </div>
+
 </div>
 </div>
+
+
 
 
 <script type="text/javascript">
@@ -70,7 +74,7 @@
 
         // Display the image.
         var sourceImageUrl = document.getElementById("inputImage").value;
-        // document.querySelector("#sourceImage").src = sourceImageUrl;
+        document.querySelector("#sourceImage").src = sourceImageUrl;
 
         // Perform the REST API call.
         $.ajax({
@@ -160,6 +164,19 @@
 
     }
 
+    function changeFont() {
+        var fon = document.getElementById("displayText");
+        if (fon.className == "arial") {
+          fon.className = 'roman';
+        } else if(fon.className == "roman"){
+          fon.className = 'helvetica';
+        } else if(fon.className == "helvetica") {
+          fon.className = 'calibri';
+        }else {
+          fon.className = 'arial';
+        }
+    }
+
     var textFile = null,
     makeTextFile = function (text) {
         var data = new Blob([text], {type: 'text/plain'});
@@ -184,10 +201,6 @@
     }
 
 
-    
-
-
-
 
 </script>
 
@@ -196,17 +209,22 @@
 
 
 
+    <!-- <div id="posts" class="amatic">Content</div> -->
+
+
 Image to read: <input type="text" name="inputImage" id="inputImage" value="https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Atomist_quote_from_Democritus.png/338px-Atomist_quote_from_Democritus.png" />
 <button onclick="processImage()">Read image</button>
 <br><br>
 <div id="wrapper" style="width:1020px; display:table;">
     <div id="jsonOutput" style="width:600px; display:table-cell;">
     </div>
-            <!-- <div id="imageDiv" style="width:420px; display:table-cell;">
+            <div id="imageDiv" style="width:420px; display:table-cell;">
                 Source image:
                 <br><br>
                 <img id="sourceImage" width="400" />
-            </div> -->
+            </div>
         </div>
+
+
     </body>
     </html>
