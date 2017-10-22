@@ -54,6 +54,10 @@
         .done(function(data) {
             // Show formatted JSON on webpage.
             $("#responseTextArea").val(JSON.stringify(data, null, 2));
+            // console.log(JSON.stringify(data, null, 2));
+            obj = JSON.parse(JSON.stringify(data, null, 2));
+
+            console.log(obj.regions[0].lines[0].words[0].text);
         })
 
         .fail(function(jqXHR, textStatus, errorThrown) {
