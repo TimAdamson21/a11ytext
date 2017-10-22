@@ -35,7 +35,11 @@
         document.querySelector("#sourceImage").src = sourceImageUrl;
 
         // This operation requrires two REST API calls. One to submit the image for processing,
+<<<<<<< HEAD
         // the other to retrieve the text found in the image. 
+=======
+        // the other to retrieve the text found in the image.
+>>>>>>> 29e0bd163aae8c91d625614d16a0b74810ee45e3
         //
         // Perform the first REST API call to submit the image for processing.
         $.ajax({
@@ -62,7 +66,11 @@
             // of the text you want to recognize. You may need to wait or retry this GET operation.
             //
             // Wait ten seconds before making the second REST API call.
+<<<<<<< HEAD
             setTimeout(function () { 
+=======
+            setTimeout(function () {
+>>>>>>> 29e0bd163aae8c91d625614d16a0b74810ee45e3
                 // The "Operation-Location" in the response contains the URI to retrieve the recognized text.
                 var operationLocation = jqXHR.getResponseHeader("Operation-Location");
 
@@ -87,7 +95,11 @@
                 .fail(function(jqXHR, textStatus, errorThrown) {
                     // Display error message.
                     var errorString = (errorThrown === "") ? "Error. " : errorThrown + " (" + jqXHR.status + "): ";
+<<<<<<< HEAD
                     errorString += (jqXHR.responseText === "") ? "" : (jQuery.parseJSON(jqXHR.responseText).message) ? 
+=======
+                    errorString += (jqXHR.responseText === "") ? "" : (jQuery.parseJSON(jqXHR.responseText).message) ?
+>>>>>>> 29e0bd163aae8c91d625614d16a0b74810ee45e3
                         jQuery.parseJSON(jqXHR.responseText).message : jQuery.parseJSON(jqXHR.responseText).error.message;
                     alert(errorString);
                 });
@@ -100,7 +112,11 @@
 
             // Display error message.
             var errorString = (errorThrown === "") ? "Error. " : errorThrown + " (" + jqXHR.status + "): ";
+<<<<<<< HEAD
             errorString += (jqXHR.responseText === "") ? "" : (jQuery.parseJSON(jqXHR.responseText).message) ? 
+=======
+            errorString += (jqXHR.responseText === "") ? "" : (jQuery.parseJSON(jqXHR.responseText).message) ?
+>>>>>>> 29e0bd163aae8c91d625614d16a0b74810ee45e3
                 jQuery.parseJSON(jqXHR.responseText).message : jQuery.parseJSON(jqXHR.responseText).error.message;
             alert(errorString);
         });
@@ -125,4 +141,8 @@ Image to read: <input type="text" name="inputImage" id="inputImage" value="https
     </div>
 </div>
 </body>
+<<<<<<< HEAD
 </html>
+=======
+</html>
+>>>>>>> 29e0bd163aae8c91d625614d16a0b74810ee45e3
