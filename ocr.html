@@ -3,8 +3,12 @@
 <head>
     <title>OCR Sample</title>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="a11ytext.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 </head>
 <body>
+
+    
 
     <script type="text/javascript">
         function processImage() {
@@ -53,35 +57,28 @@
 
         .done(function(data) {
             // Show formatted JSON on webpage.
-            $("#responseTextArea").val(JSON.stringify(data, null, 2));
+            //$("#responseTextArea").val(JSON.stringify(data, null, 2));
             // console.log(JSON.stringify(data, null, 2));
             obj = JSON.parse(JSON.stringify(data, null, 2));
 
-
-            sentence ="";
-
             regions = obj.regions;
-
             for (var a = 0; a < regions.length; a++) {
-
                 lines = regions[a].lines;
-
                 for (var i = 0; i < lines.length; i++) {
-
+                    sentence ="";
                     words = lines[i].words;
-
                     for (var j = 0; j < words.length; j++) {
+                     sentence += words[j].text + " ";
+                 }
 
-                       s += words[j].text + " ";
-
-                   }
-               }
-
-           }
+                 console.log(sentence);
+                 document.getElementById("responseTextArea").value += sentence + '\n';
+             }
+         }
 
 
-           console.log(sentence);
-       })
+
+     })
 
         .fail(function(jqXHR, textStatus, errorThrown) {
             // Display error message.
@@ -91,25 +88,83 @@
             alert(errorString);
         });
     };
+
+    function changeContrast() {
+
+        var checkBox = document.getElementById("myCheck");
+        var textArea = document.getElementById("responseTextArea");
+
+
+        if(checkBox.checked) {
+            //alert("checked");
+            textArea.style.backgroundColor = "black";
+            textArea.style.color = "white";
+        } else {
+            textArea.style.backgroundColor = "white";
+            textArea.style.color = "black";
+        }
+
+
+    }
+
+    function increaseFont() {
+
+        var textArea = document.getElementById("responseTextArea");
+
+        style = window.getComputedStyle(textArea, null).getPropertyValue('font-size');
+        currentSize = parseFloat(style);
+        textArea.style.fontSize = (currentSize + 5) + 'px';
+
+    }
+
+    function decreaseFont() {
+
+        var textArea = document.getElementById("responseTextArea");
+
+        style = window.getComputedStyle(textArea, null).getPropertyValue('font-size');
+        currentSize = parseFloat(style);
+        textArea.style.fontSize = (currentSize - 2) + 'px';
+
+    }
+
+
+
 </script>
 
-<h1>Optical Character Recognition (OCR):</h1>
-Enter the URL to an image of printed text, then click the <strong>Read image</strong> button.
-<br><br>
-Image to read: <input type="text" name="inputImage" id="inputImage" value="https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Atomist_quote_from_Democritus.png/338px-Atomist_quote_from_Democritus.png" />
-<button onclick="processImage()">Read image</button>
-<br><br>
-<div id="wrapper" style="width:1020px; display:table;">
-    <div id="jsonOutput" style="width:600px; display:table-cell;">
-        Response:
-        <br><br>
-        <textarea id="responseTextArea" class="UIInput" style="width:580px; height:400px;"></textarea>
-    </div>
-    <div id="imageDiv" style="width:420px; display:table-cell;">
-        Source image:
-        <br><br>
-        <img id="sourceImage" width="400" />
-    </div>
+<div id="upload"></div>
+
+<div>
+    <label class="switch">
+      <input id ="myCheck" type="checkbox" onclick="changeContrast()">
+      <span class="slider round"></span>
+  </label>
+  Contrast
 </div>
-</body>
-</html>
+
+<div>
+    <button id ="increaseFont" onclick="increaseFont()">+</button>
+
+    <button id ="decreaseFont" onclick="decreaseFont()">-</button>
+
+    </div>
+
+        <h1>Optical Character Recognition (OCR):</h1>
+        Enter the URL to an image of printed text, then click the <strong>Read image</strong> button.
+        <br><br>
+        Image to read: <input type="text" name="inputImage" id="inputImage" value="https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Atomist_quote_from_Democritus.png/338px-Atomist_quote_from_Democritus.png" />
+        <button onclick="processImage()">Read image</button>
+        <br><br>
+        <div id="wrapper" style="width:1020px; display:table;">
+            <div id="jsonOutput" style="width:600px; display:table-cell;">
+                Response:
+                <br><br>
+                <textarea id="responseTextArea" class="UIInput" style="width:580px; height:400px;"></textarea>
+            </div>
+            <div id="imageDiv" style="width:420px; display:table-cell;">
+                Source image:
+                <br><br>
+                <img id="sourceImage" width="400" />
+            </div>
+        </div>
+    </body>
+    </html>
