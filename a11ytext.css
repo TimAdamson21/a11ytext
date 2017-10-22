@@ -126,3 +126,8 @@ input:checked + .slider:before {
     -moz-box-shadow: none;
     box-shadow: none;
   }
+
+  #fontChange {
+
+    padding: 10px;
+  }
