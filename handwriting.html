@@ -8,27 +8,116 @@
 <body>
 
 <script type="text/javascript">
-   function handleFiles(files){
-        var file = files[0];
-        console.log(file);
-        var reader = new FileReader();
+   
 
-        reader.onload = function (e) {
-            $('#sourceImage')
-                .attr('src', e.target.result);
-        };
-
-        reader.readAsDataURL(file);
-        processImage(file);
+    function dataURLtoFile(dataurl, filename) {
+        var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+            bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+        while(n--){
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new File([u8arr], filename, {type:mime});
     }
 
+    function b64toBlob(b64Data, contentType, sliceSize) {
+        contentType = contentType || '';
+        sliceSize = sliceSize || 512;
+
+        var byteCharacters = atob(b64Data);
+        var byteArrays = [];
+
+        for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+            var slice = byteCharacters.slice(offset, offset + sliceSize);
+
+            var byteNumbers = new Array(slice.length);
+            for (var i = 0; i < slice.length; i++) {
+                byteNumbers[i] = slice.charCodeAt(i);
+            }
+
+            var byteArray = new Uint8Array(byteNumbers);
+
+            byteArrays.push(byteArray);
+        }
+
+        var blob = new Blob(byteArrays, {type: contentType});
+        return blob;
+    }
+
+   function handleFiles(files){
+        var file = files[0];
+        var type = file.type;
+        console.log(type);
+
+        if(type === "image/jpeg" || type === "image/png"){
+            console.log("You uploaded an image");
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                $('#sourceImage')
+                    .attr('src', e.target.result);
+            };
+            reader.readAsDataURL(file);
+            processImage(file);
+        }
+
+        else if(type === "application/pdf"){
+            console.log("You uploaded a pdf");
+            processPDF(file);
+        }
+        else{
+            console.error("Illegal file type");
+        }
+
+    }
+
+    
+    function processPDF(pdfFile){
+        var formData = new FormData();
+        formData.append('File', pdfFile, pdfFile.name);
+        formData.append('JpgQuality', '50');
+        formData.append('ImageResolutionH', '200');
+        formData.append('ImageResolutionV', '200');
+
+        $.ajax({
+            url: 'https://v2.convertapi.com/pdf/to/jpg?Secret=DrS0i33shLt0ZnHj',
+            data: formData,
+            processData: false,
+            contentType: false,
+            method: 'POST',
+            success: function(data) {
+                console.log("We had success!");
+                console.log(data);
+                var urlString = "data:text/plain;base64," + data.Files[0].FileData;
+
+                /*
+                var blob = b64toBlob(data.Files[0].FileData, "image/jpeg")
+                console.log(blob);
+                var file = new File(blob, "image111.jpg");
+                */
+
+                var file = dataURLtoFile(urlString, "hello.txt");
+
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#sourceImage')
+                        .attr('src', e.target.result);
+                };
+                reader.readAsDataURL(file);
+
+                console.log(file);
+                processImage(file);
+            }
+        })
+
+
+    }
+    
     function processOnlineImage(){
         var sourceImageUrl = document.getElementById("inputImage").value;
         var imageData = '{"url": ' + '"' + sourceImageUrl + '"}'
         processImage(imageData);
     }
 
-    function processImage(imageData) {
+    function processImage(imageFile) {
         // **********************************************
         // *** Update or verify the following values. ***
         // **********************************************
@@ -70,11 +159,11 @@
 
             .set("x-ms-blob-type", "BlockBlob")
 
-            .set("x-ms-blob-content-type", imageData.type)
+            .set("x-ms-blob-content-type", imageFile.type)
 
             .set("Ocp-Apim-Subscription-Key", subscriptionKey)
 
-            .send(imageData)
+            .send(imageFile)
 
             .end(function(err, res) {
 
@@ -117,14 +206,14 @@
                                 // Show formatted JSON on webpage.
                                 // $("#responseTextArea").val(JSON.stringify(data, null, 2));
 
-                                obj = JSON.parse(JSON.stringify(data, null, 2));
+                               var obj = JSON.parse(JSON.stringify(data, null, 2));
 
                                 // var lines = obj.recognitionResult.lines.sort((a, b) => a.boundingBox[1] - b.boundingBox[1]);
                                 var lines = obj.recognitionResult.lines;
 
-                                s = '';
+                               var s = '';
 
-                                for(i = 0; i < lines.length; i+=1) {
+                                for(var i = 0; i < lines.length; i+=1) {
                                     var line = lines[i];
                                     s += line.text + '\n';
                                     // console.log(line.text);
@@ -162,7 +251,7 @@
             contentType: 'application/octet-stream',
             // Request body.
             processData: false,
-            data: imageData
+            data: imageFile
 
         })
 
