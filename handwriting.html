@@ -83,24 +83,17 @@
                     // Show formatted JSON on webpage.
                     // $("#responseTextArea").val(JSON.stringify(data, null, 2));
 
-                    // console.log(JSON.stringify(data, null, 2));
                     obj = JSON.parse(JSON.stringify(data, null, 2));
 
                     var lines = obj.recognitionResult.lines.sort((a, b) => a.boundingBox[1] - b.boundingBox[1]);
-                    // var lines = obj.recognitionResult.lines;
 
                     s = '';
 
                     for(i = 0; i < lines.length; i+=1) {
                       var line = lines[i];
                       s += line.text + '\n';
-                      console.log(s);
                     }
-
                     $("#responseTextArea").val(s);
-                    // console.log(lines);
-
-                    // console.log(obj.regions[0].lines[0].words[0].text);
                 })
 
                 .fail(function(jqXHR, textStatus, errorThrown) {
