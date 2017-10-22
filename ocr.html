@@ -45,9 +45,9 @@
         </div>
         
         
-      
-  </div>
-  <div class="col-sm-8 text-left" style="height: 300px"> 
+
+    </div>
+    <div class="col-sm-8 text-left" style="height: 300px"> 
       <h1>Welcome</h1>
       <textarea id="displayText" style="width:100%; height:100%;"></textarea>
       <hr>
@@ -117,17 +117,17 @@
                     sentence ="";
                     words = lines[i].words;
                     for (var j = 0; j < words.length; j++) {
-                       sentence += words[j].text + " ";
-                   }
+                     sentence += words[j].text + " ";
+                 }
 
-                   console.log(sentence);
-                   document.getElementById("displayText").value += sentence + '\n';
-               }
-           }
+                 console.log(sentence);
+                 document.getElementById("displayText").value += sentence + '\n';
+             }
+         }
 
 
 
-       })
+     })
 
         .fail(function(jqXHR, textStatus, errorThrown) {
             // Display error message.
@@ -176,6 +176,33 @@
 
     }
 
+    var textFile = null,
+    makeTextFile = function (text) {
+        var data = new Blob([text], {type: 'text/plain'});
+
+    // If we are replacing a previously generated file we need to
+    // manually revoke the object URL to avoid memory leaks.
+    if (textFile !== null) {
+          window.URL.revokeObjectURL(textFile);
+     }
+
+      textFile = window.URL.createObjectURL(data);
+
+      return textFile;
+    };
+
+    function download() {
+        var create = document.getElementById('create'),
+        textbox = document.getElementById('displayText');
+        var link = document.getElementById('downloadlink');
+        link.href = makeTextFile(textbox.value);
+        link.style.display = 'block';
+    }
+
+
+    
+
+
 
 
 </script>
@@ -183,11 +210,8 @@
 <div id="upload"></div>
 
 
+<button id="create" onclick="download()">Create file</button> <a download="A11YText.txt" id="downloadlink" style="display: none">Download</a>
 
-<div>
-
-
-</div>
 
 Image to read: <input type="text" name="inputImage" id="inputImage" value="https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Atomist_quote_from_Democritus.png/338px-Atomist_quote_from_Democritus.png" />
 <button onclick="processImage()">Read image</button>
