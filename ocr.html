@@ -6,8 +6,8 @@
 </head>
 <body>
 
-<script type="text/javascript">
-    function processImage() {
+    <script type="text/javascript">
+        function processImage() {
         // **********************************************
         // *** Update or verify the following values. ***
         // **********************************************
@@ -57,14 +57,37 @@
             // console.log(JSON.stringify(data, null, 2));
             obj = JSON.parse(JSON.stringify(data, null, 2));
 
-            console.log(obj.regions[0].lines[0].words[0].text);
-        })
+
+            sentence ="";
+
+            regions = obj.regions;
+
+            for (var a = 0; a < regions.length; a++) {
+
+                lines = regions[a].lines;
+
+                for (var i = 0; i < lines.length; i++) {
+
+                    words = lines[i].words;
+
+                    for (var j = 0; j < words.length; j++) {
+
+                       s += words[j].text + " ";
+
+                   }
+               }
+
+           }
+
+
+           console.log(sentence);
+       })
 
         .fail(function(jqXHR, textStatus, errorThrown) {
             // Display error message.
             var errorString = (errorThrown === "") ? "Error. " : errorThrown + " (" + jqXHR.status + "): ";
             errorString += (jqXHR.responseText === "") ? "" : (jQuery.parseJSON(jqXHR.responseText).message) ?
-                jQuery.parseJSON(jqXHR.responseText).message : jQuery.parseJSON(jqXHR.responseText).error.message;
+            jQuery.parseJSON(jqXHR.responseText).message : jQuery.parseJSON(jqXHR.responseText).error.message;
             alert(errorString);
         });
     };
