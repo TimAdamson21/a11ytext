@@ -119,7 +119,8 @@
 
                                 obj = JSON.parse(JSON.stringify(data, null, 2));
 
-                                var lines = obj.recognitionResult.lines.sort((a, b) => a.boundingBox[1] - b.boundingBox[1]);
+                                // var lines = obj.recognitionResult.lines.sort((a, b) => a.boundingBox[1] - b.boundingBox[1]);
+                                var lines = obj.recognitionResult.lines;
 
                                 s = '';
 
@@ -251,7 +252,7 @@
     //     }
     // }
 </script>
-<h1>Read handwritten image image:</h1>
+<h1>Read handwritten image</h1>
 <!-- Enter the URL to an image of handwritten text, then click the <strong>Read image</strong> button. -->
 <!-- <br><br> -->
 <!-- Image to read: <input type="text" name="inputImage" id="inputImage" value="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Cursive_Writing_on_Notebook_paper.jpg/800px-Cursive_Writing_on_Notebook_paper.jpg" /> -->
