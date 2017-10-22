@@ -78,6 +78,8 @@
                     console.dir(res);
 
                 } else {
+                    console.log(err);
+                    console.log(res);
                     $("#responseTextArea").val("Handwritten text submitted. Waiting 10 seconds to retrieve the recognized text.");
 
                     // Note: The response may not be immediately available. Handwriting recognition is an
@@ -89,7 +91,7 @@
                     setTimeout(function () {
 
                         // The "Operation-Location" in the response contains the URI to retrieve the recognized text.
-                        var operationLocation = jqXHR.getResponseHeader("Operation-Location");
+                        var operationLocation = res.xhr.getResponseHeader("Operation-Location");
 
                         // Perform the second REST API call and get the response.
                         $.ajax({
@@ -106,7 +108,19 @@
 
                             .done(function(data) {
                                 // Show formatted JSON on webpage.
-                                $("#responseTextArea").val(JSON.stringify(data, null, 2));
+                                // $("#responseTextArea").val(JSON.stringify(data, null, 2));
+
+                                obj = JSON.parse(JSON.stringify(data, null, 2));
+
+                                var lines = obj.recognitionResult.lines.sort((a, b) => a.boundingBox[1] - b.boundingBox[1]);
+
+                                s = '';
+
+                                for(i = 0; i < lines.length; i+=1) {
+                                    var line = lines[i];
+                                    s += line.text + '\n';
+                                }
+                                $("#responseTextArea").val(s);
                             })
 
                             .fail(function(jqXHR, textStatus, errorThrown) {
@@ -117,6 +131,7 @@
                                 alert(errorString);
                             });
                     }, 10000);
+
 
                 }
 
