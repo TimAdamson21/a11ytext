@@ -4,10 +4,132 @@
     <title>Handwriting Sample</title>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/superagent/3.5.2/superagent.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="a11ytext.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 </head>
 <body>
 
+    <div class="container-fluid text-center">
+  <div class="row content">
+    <div class="col-sm-2 sidenav">
+
+        <label class="switch">
+
+            <input id ="myCheck" type="checkbox" onclick="changeContrast()">
+            <span class="slider round"></span>
+        </label>
+
+
+        <div>
+            <button class="btn btn-primary" id ="increaseFont" onclick="increaseFont()">+</button>
+            <button class="btn btn-primary" id ="decreaseFont" onclick="decreaseFont()">-</button>
+        </div>
+
+        <div id ="fontChange">
+        <button type="button" onclick="changeFont()">Change the font!</button>
+        </div>
+        
+
+    </div>
+    
+    <div class="col-sm-8 text-left" style="height: 650px">
+      <textarea id="displayText" style="width:100%; height:100%;"></textarea>
+  </div>
+  <div class="col-sm-2 sidenav">
+    
+
+   
+<input type="file" id="input" multiple onchange="handleFiles(this.files)">
+
+<button id="create" onclick="download()">Create file</button> <a download="A11YText.txt" id="downloadlink" style="display: none">Download</a>
+
+<div id="imageDiv" style="width:150%; display:table-cell;">
+    
+    <br><br>
+    <img id="sourceImage" width="400" />
+</div>
+  </div>
+
+</div>
+</div>
+
 <script type="text/javascript">
+
+    function changeContrast() {
+
+        var checkBox = document.getElementById("myCheck");
+        var textArea = document.getElementById("displayText");
+
+
+        if(checkBox.checked) {
+            //alert("checked");
+            textArea.style.backgroundColor = "black";
+            textArea.style.color = "white";
+        } else {
+            textArea.style.backgroundColor = "white";
+            textArea.style.color = "black";
+        }
+
+
+    }
+
+    function increaseFont() {
+
+        var textArea = document.getElementById("displayText");
+
+        style = window.getComputedStyle(textArea, null).getPropertyValue('font-size');
+        currentSize = parseFloat(style);
+        textArea.style.fontSize = (currentSize + 5) + 'px';
+
+    }
+
+    function decreaseFont() {
+
+        var textArea = document.getElementById("displayText");
+
+        style = window.getComputedStyle(textArea, null).getPropertyValue('font-size');
+        currentSize = parseFloat(style);
+        textArea.style.fontSize = (currentSize - 2) + 'px';
+
+    }
+
+    function changeFont() {
+        var fon = document.getElementById("displayText");
+        if (fon.className == "arial") {
+          fon.className = 'roman';
+        } else if(fon.className == "roman"){
+          fon.className = 'helvetica';
+        } else if(fon.className == "helvetica") {
+          fon.className = 'calibri';
+        }else {
+          fon.className = 'arial';
+        }
+    }
+
+    var textFile = null,
+    makeTextFile = function (text) {
+        var data = new Blob([text], {type: 'text/plain'});
+
+    // If we are replacing a previously generated file we need to
+    // manually revoke the object URL to avoid memory leaks.
+    if (textFile !== null) {
+          window.URL.revokeObjectURL(textFile);
+     }
+
+      textFile = window.URL.createObjectURL(data);
+
+      return textFile;
+    };
+
+    function download() {
+        var create = document.getElementById('create'),
+        textbox = document.getElementById('displayText');
+        var link = document.getElementById('downloadlink');
+        link.href = makeTextFile(textbox.value);
+        link.style.display = 'block';
+    }
+
+
    
 
     function dataURLtoFile(dataurl, filename) {
@@ -112,7 +234,7 @@
     }
     
     function processOnlineImage(){
-        var sourceImageUrl = document.getElementById("inputImage").value;
+        var sourceImageUrl = document.getElementById("displayText").value;
         var imageData = '{"url": ' + '"' + sourceImageUrl + '"}'
         processImage(imageData);
     }
@@ -218,7 +340,7 @@
                                     s += line.text + '\n';
                                     // console.log(line.text);
                                 }
-                                $("#responseTextArea").val(s);
+                                $("#displayText").val(s);
                             })
 
                             .fail(function(jqXHR, textStatus, errorThrown) {
@@ -347,7 +469,7 @@
 <!-- Image to read: <input type="text" name="inputImage" id="inputImage" value="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Cursive_Writing_on_Notebook_paper.jpg/800px-Cursive_Writing_on_Notebook_paper.jpg" /> -->
 <!-- <button onclick="processOnlineImage()">Read image</button> -->
 <!-- <br><br> -->
-<input type="file" id="input" multiple onchange="handleFiles(this.files)">
+
 <br><br>
 <div id="wrapper" style="width:1020px; display:table;">
     <div id="jsonOutput" style="width:600px; display:table-cell;">
