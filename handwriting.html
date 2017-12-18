@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Handwriting Sample</title>
+    <title>Handwriting to Text</title>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/superagent/3.5.2/superagent.min.js"></script>
     <link rel="stylesheet" type="text/css" href="a11ytext.css">
@@ -41,7 +41,7 @@
    
 <input type="file" id="input" multiple onchange="handleFiles(this.files)">
 
-<button id="create" onclick="download()">Create file</button> <a download="A11YText.txt" id="downloadlink" style="display: none">Download</a>
+<button id="create" onclick="download()">Create file</button> <a download=(input + ".txt") id="downloadlink" style="display: none">Download</a>
 
 <div id="imageDiv" style="width:150%; display:table-cell;">
     
@@ -210,11 +210,11 @@
                 console.log(data);
                 var urlString = "data:text/plain;base64," + data.Files[0].FileData;
 
-                /*
+                
                 var blob = b64toBlob(data.Files[0].FileData, "image/jpeg")
                 console.log(blob);
                 var file = new File(blob, "image111.jpg");
-                */
+                
 
                 var file = dataURLtoFile(urlString, "hello.txt");
 
@@ -245,7 +245,7 @@
         // **********************************************
 
         // Replace the subscriptionKey string value with your valid subscription key.
-        var subscriptionKey = "8103c099c1d44c708b14fe6ca902fcc5";
+        var subscriptionKey = "77a01c5eff1f47c4812a001a082c7728";
 
         // Replace or verify the region.
         //
@@ -326,7 +326,7 @@
 
                             .done(function(data) {
                                 // Show formatted JSON on webpage.
-                                // $("#responseTextArea").val(JSON.stringify(data, null, 2));
+                               $("#responseTextArea").val(JSON.stringify(data, null, 2));
 
                                var obj = JSON.parse(JSON.stringify(data, null, 2));
 
@@ -358,7 +358,7 @@
             });
 
 
-/*
+
 
         $.ajax({
             url: uriBase + "?" + $.param(params),
@@ -407,7 +407,7 @@
 
                 .done(function(data) {
                     // Show formatted JSON on webpage.
-                    // $("#responseTextArea").val(JSON.stringify(data, null, 2));
+                    $("#responseTextArea").val(JSON.stringify(data, null, 2));
 
                     obj = JSON.parse(JSON.stringify(data, null, 2));
 
@@ -445,23 +445,23 @@
                 jQuery.parseJSON(jqXHR.responseText).message : jQuery.parseJSON(jqXHR.responseText).error.message;
             alert(errorString);
         });
-        */
+        
 
 
     };
 
-    // function readURL(input) {
-    //     if (input.files && input.files[0]) {
-    //         var reader = new FileReader();
-    //
-    //         reader.onload = function (e) {
-    //             $('#sourceImage')
-    //                 .attr('src', e.target.result);
-    //         };
-    //
-    //         reader.readAsDataURL(input.files[0]);
-    //     }
-    // }
+     /*function readURL(input) {
+         if (input.files && input.files[0]) {
+             var reader = new FileReader();
+    
+             reader.onload = function (e) {
+                 $('#sourceImage')
+                     .attr('src', e.target.result);
+             };
+    
+             reader.readAsDataURL(input.files[0]);
+         }
+     }*/
 </script>
 <h1>Read handwritten image</h1>
 <!-- Enter the URL to an image of handwritten text, then click the <strong>Read image</strong> button. -->
