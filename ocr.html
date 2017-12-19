@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>OCR Sample</title>
+    <title>Printed Text</title>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
     <link rel="stylesheet" type="text/css" href="a11ytext.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -41,7 +41,9 @@
     <input type="text" name="inputImage" id="inputImage" value="https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Atomist_quote_from_Democritus.png/338px-Atomist_quote_from_Democritus.png" />
 <button onclick="processImage()" id ="readImage">Read image</button>
 
-<button id="create" onclick="download()">Create file</button> <a download="A11YText.txt" id="downloadlink" style="display: none">Download</a>
+
+
+<button id="create" onclick="download()">Create file</button> <a download="A11yText.txt" id="downloadlink" style="display: none">Download</a>
 
 <div id="imageDiv" style="width:150%; display:table-cell;">
     
@@ -55,6 +57,7 @@
 
 
 <script type="text/javascript">
+var imageName = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Atomist_quote_from_Democritus.png/338px-Atomist_quote_from_Democritus.png"
     function processImage() {
         // **********************************************
         // *** Update or verify the following values. ***
@@ -151,6 +154,9 @@
 
     }
 
+    /*
+     *  increases the text-box font by two points
+     */
     function increaseFont() {
 
         var textArea = document.getElementById("displayText");
@@ -161,6 +167,9 @@
 
     }
 
+    /*
+     *  decreases the text-box font by two points
+     */
     function decreaseFont() {
 
         var textArea = document.getElementById("displayText");
@@ -171,6 +180,10 @@
 
     }
 
+    /**
+     *  toggles through four popular fonts
+     *  TODO: allow for any standard font
+     */
     function changeFont() {
         var fon = document.getElementById("displayText");
         if (fon.className == "arial") {
@@ -214,7 +227,12 @@
 
 
     <!-- <div id="posts" class="amatic">Content</div> -->
-
+<h2>Convert Printed-Text Materials to Text</h2>
+<!-- Enter the URL to an image of handwritten text, then click the <strong>Read image</strong> button. -->
+<!-- <br><br> -->
+<!-- Image to read: <input type="text" name="inputImage" id="inputImage" value="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Cursive_Writing_on_Notebook_paper.jpg/800px-Cursive_Writing_on_Notebook_paper.jpg" /> -->
+<!-- <button onclick="processOnlineImage()">Read image</button> -->
+<!-- <br><br> -->
 
 
 
