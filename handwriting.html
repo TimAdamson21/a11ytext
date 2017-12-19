@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Handwriting to Text</title>
+    <title>Handwriting</title>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/superagent/3.5.2/superagent.min.js"></script>
     <link rel="stylesheet" type="text/css" href="a11ytext.css">
@@ -41,7 +41,7 @@
    
 <input type="file" id="input" multiple onchange="handleFiles(this.files)">
 
-<button id="create" onclick="download()">Create file</button> <a download=(input + ".txt") id="downloadlink" style="display: none">Download</a>
+<button id="create" onclick="download()">Create file</button> <a download=document.getElementById('downloadlink') id="downloadlink" style="display: none">Download</a>
 
 <div id="imageDiv" style="width:150%; display:table-cell;">
     
@@ -55,6 +55,10 @@
 
 <script type="text/javascript">
 
+	/*
+	 * changes the contrast back and forth between the text/background being
+	 * black/white respectively
+	 */
     function changeContrast() {
 
         var checkBox = document.getElementById("myCheck");
@@ -73,6 +77,9 @@
 
     }
 
+    /*
+     *  increases the text-box font by two points
+     */
     function increaseFont() {
 
         var textArea = document.getElementById("displayText");
@@ -83,6 +90,9 @@
 
     }
 
+    /*
+     *  decreases the text-box font by two points
+     */
     function decreaseFont() {
 
         var textArea = document.getElementById("displayText");
@@ -93,6 +103,11 @@
 
     }
 
+    /**
+     *  toggles through four popular fonts
+     *  TODO: allow for any standard font
+     *  TODO: get rid of duplicated code
+     */
     function changeFont() {
         var fon = document.getElementById("displayText");
         if (fon.className == "arial") {
@@ -450,7 +465,7 @@
 
     };
 
-     /*function readURL(input) {
+     function readURL(input) {
          if (input.files && input.files[0]) {
              var reader = new FileReader();
     
@@ -461,9 +476,9 @@
     
              reader.readAsDataURL(input.files[0]);
          }
-     }*/
+     }
 </script>
-<h1>Read handwritten image</h1>
+<h2>Convert Handwritten Materials to Text</h2>
 <!-- Enter the URL to an image of handwritten text, then click the <strong>Read image</strong> button. -->
 <!-- <br><br> -->
 <!-- Image to read: <input type="text" name="inputImage" id="inputImage" value="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Cursive_Writing_on_Notebook_paper.jpg/800px-Cursive_Writing_on_Notebook_paper.jpg" /> -->
