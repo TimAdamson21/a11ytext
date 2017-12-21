@@ -73,7 +73,7 @@
         //
         // NOTE: Free trial subscription keys are generated in the westcentralus region, so if you are using
         // a free trial subscription key, you should not need to change this region.
-        var uriBase = "https://westcentralus.api.cognitive.microsoft.com/vision/v1.0/ocr";
+        var uriBase = "https://westcentralus.api.cognitive.microsoft.com/vision/v1.0/ocr?";
 
         // Request parameters.
         var params = {
@@ -87,7 +87,7 @@
 
         // Perform the REST API call.
         $.ajax({
-            url: uriBase + "?" + $.param(params),
+            url: uriBase + $.param(params),
 
             // Request headers.
             beforeSend: function(jqXHR){
@@ -98,13 +98,13 @@
             type: "POST",
 
             // Request body.
-            data: '{"url": ' + '"' + sourceImageUrl + '"}',
+            data: '{"url": "' + sourceImageUrl + '"}',
         })
 
         .done(function(data) {
             // Show formatted JSON on webpage.
             //$("#responseTextArea").val(JSON.stringify(data, null, 2));
-            // console.log(JSON.stringify(data, null, 2));
+            //console.log(JSON.stringify(data, null, 2));
             obj = JSON.parse(JSON.stringify(data, null, 2));
 
             regions = obj.regions;
@@ -226,7 +226,7 @@
 
 
     <!-- <div id="posts" class="amatic">Content</div> -->
-<h2>Convert Printed-Text Materials to Text</h2>
+<h2>Convert Printed-Text Images to Text</h2>
 <!-- Enter the URL to an image of handwritten text, then click the <strong>Read image</strong> button. -->
 <!-- <br><br> -->
 <!-- Image to read: <input type="text" name="inputImage" id="inputImage" value="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Cursive_Writing_on_Notebook_paper.jpg/800px-Cursive_Writing_on_Notebook_paper.jpg" /> -->
