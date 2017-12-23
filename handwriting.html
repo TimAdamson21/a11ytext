@@ -38,15 +38,17 @@
   </div>
   <div class="col-sm-2 sidenav">
     
-<input type="text" name="inputImage" id="inputImage" value="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Cursive_Writing_on_Notebook_paper.jpg/800px-Cursive_Writing_on_Notebook_paper.jpg" />
-<button onclick="handleFiles([document.getElementById('inputImage').value])">Read image</button>
+Accepts PDFs and images (JPG and PNG).
 <br><br>
+<!-- <input type="text" name="inputImage" id="inputImage" value="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Cursive_Writing_on_Notebook_paper.jpg/800px-Cursive_Writing_on_Notebook_paper.jpg" /> -->
+<!-- <button onclick="handleFiles([document.getElementById('inputImage').value])">Read image</button> -->
+<!--  <br><br> -->
 <input type="file" id="input" multiple onchange="handleFiles(this.files)">
 If multiple, first file used.<br>
 <br><br>
-<button id="create" onclick="download()">Create file</button> <a id="downloadlink" style="display: none">Download</a>
-<br><br>
-Accepts PDFs and images.
+<button id="create" onclick="download()">Create file</button> <a download="A11yText.txt" id="downloadlink" style="display: none">Download</a>
+
+
 
 <div id="imageDiv" style="width:150%; display:table-cell;">
     
@@ -147,7 +149,6 @@ Accepts PDFs and images.
         var link = document.getElementById('downloadlink');
         link.href = makeTextFile(textbox.value);
         link.style.display = 'block';
-        link.download = "yes";
     }
 
     function dataURLtoFile(dataurl, filename) {
@@ -186,10 +187,9 @@ Accepts PDFs and images.
    function handleFiles(files) {
         var file = files[0];
         var type = file.type;
-        console.log(type);
+        console.log(file);
         
-        var link = document.getElementById("downloadLink");
-        link.download = file;
+        setDownloadName(file.name);
 
         if (type === "image/jpeg" || type === "image/png") {
             console.log("You uploaded an image");
@@ -211,6 +211,21 @@ Accepts PDFs and images.
         }
     }
 
+   function setDownloadName(fileName) {
+	   console.log(fileName);
+	   // default name
+	   var downloadName = "A11yText.txt";
+	   
+	   	if (fileName.endsWith(".jpg") || fileName.endsWith(".pdf") || fileName.endsWith(".png")
+	   			|| fileName.endsWith(".jpeg")) {
+	   		// Know what to do, so we customize the name by removing the original file extension
+	   		// and adding .txt
+	   		downloadName = fileName.substring(0, fileName.lastIndexOf(".")) + ".txt";
+	   	}
+	   	
+	   	// set the download attribute to be used when "download" is clicked
+	   	document.getElementById("downloadlink").download = downloadName;
+   }
     
     function processPDF(pdfFile){
         var formData = new FormData();
@@ -218,6 +233,8 @@ Accepts PDFs and images.
         formData.append('JpgQuality', '50');
         formData.append('ImageResolutionH', '200');
         formData.append('ImageResolutionV', '200');
+        
+        $("#displayText").val("PDF being converted. Please wait.");
 
         $.ajax({
             url: 'https://v2.convertapi.com/pdf/to/jpg?Secret=DrS0i33shLt0ZnHj',
