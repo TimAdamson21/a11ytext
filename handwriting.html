@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html>
+<html lang="en-US">
 <head>
     <title>Handwriting</title>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/superagent/3.5.2/superagent.min.js"></script>
     <link rel="stylesheet" type="text/css" href="a11ytext.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 </head>
 <body>
 
@@ -26,7 +27,7 @@
         </div>
 
         <div id ="fontChange">
-        <button type="button" onclick="changeFont()">Change the font!</button>
+        <button type="button" onclick="changeFont()">Change the font</button>
         </div>
         
 
@@ -37,11 +38,17 @@
   </div>
   <div class="col-sm-2 sidenav">
     
-
-   
+Accepts PDFs and images (JPG and PNG).
+<br><br>
+<!-- <input type="text" name="inputImage" id="inputImage" value="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Cursive_Writing_on_Notebook_paper.jpg/800px-Cursive_Writing_on_Notebook_paper.jpg" /> -->
+<!-- <button onclick="handleFiles([document.getElementById('inputImage').value])">Read image</button> -->
+<!--  <br><br> -->
 <input type="file" id="input" multiple onchange="handleFiles(this.files)">
-
+If multiple, first file used.<br>
+<br><br>
 <button id="create" onclick="download()">Create file</button> <a download="A11yText.txt" id="downloadlink" style="display: none">Download</a>
+
+
 
 <div id="imageDiv" style="width:150%; display:table-cell;">
     
@@ -180,7 +187,9 @@
    function handleFiles(files) {
         var file = files[0];
         var type = file.type;
-        console.log(type);
+        console.log(file);
+        
+        setDownloadName(file.name);
 
         if (type === "image/jpeg" || type === "image/png") {
             console.log("You uploaded an image");
@@ -202,6 +211,21 @@
         }
     }
 
+   function setDownloadName(fileName) {
+	   console.log(fileName);
+	   // default name
+	   var downloadName = "A11yText.txt";
+	   
+	   	if (fileName.endsWith(".jpg") || fileName.endsWith(".pdf") || fileName.endsWith(".png")
+	   			|| fileName.endsWith(".jpeg")) {
+	   		// Know what to do, so we customize the name by removing the original file extension
+	   		// and adding .txt
+	   		downloadName = fileName.substring(0, fileName.lastIndexOf(".")) + ".txt";
+	   	}
+	   	
+	   	// set the download attribute to be used when "download" is clicked
+	   	document.getElementById("downloadlink").download = downloadName;
+   }
     
     function processPDF(pdfFile){
         var formData = new FormData();
@@ -209,6 +233,8 @@
         formData.append('JpgQuality', '50');
         formData.append('ImageResolutionH', '200');
         formData.append('ImageResolutionV', '200');
+        
+        $("#displayText").val("PDF being converted. Please wait.");
 
         $.ajax({
             url: 'https://v2.convertapi.com/pdf/to/jpg?Secret=DrS0i33shLt0ZnHj',
@@ -246,6 +272,7 @@
     
     function processOnlineImage(){
         var sourceImageUrl = document.getElementById("displayText").value;
+        console.log(sourceImageUrl);
         var imageData = '{"url": ' + '"' + sourceImageUrl + '"}'
         processImage(imageData);
     }
@@ -309,7 +336,7 @@
                 } else {
                     console.log(err);
                     console.log(res);
-                    $("#responseTextArea").val("Handwritten text submitted. Waiting 10 seconds to retrieve the recognized text.");
+                    $("#displayText").val("Handwritten text submitted. Please wait 10 seconds.");
 
                     // Note: The response may not be immediately available. Handwriting recognition is an
                     // async operation that can take a variable amount of time depending on the length
@@ -337,7 +364,7 @@
 
                             .done(function(data) {
                                 // Show formatted JSON on webpage.
-                               $("#responseTextArea").val(JSON.stringify(data, null, 2));
+                               //$("#responseTextArea").val(JSON.stringify(data, null, 2));
 
                                var obj = JSON.parse(JSON.stringify(data, null, 2));
 
@@ -390,7 +417,7 @@
 
         .done(function(data, textStatus, jqXHR) {
             // Show progress.
-            $("#responseTextArea").val("Handwritten text submitted. Waiting 10 seconds to retrieve the recognized text.");
+            $("#displayText").val("Handwritten text submitted. Waiting 10 seconds to retrieve the recognized text.");
 
             // Note: The response may not be immediately available. Handwriting recognition is an
             // async operation that can take a variable amount of time depending on the length
@@ -477,8 +504,7 @@
 <h2>Convert Handwriting Images to Text</h2>
 <!-- Enter the URL to an image of handwritten text, then click the <strong>Read image</strong> button. -->
 <!-- <br><br> -->
-<!-- Image to read: <input type="text" name="inputImage" id="inputImage" value="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Cursive_Writing_on_Notebook_paper.jpg/800px-Cursive_Writing_on_Notebook_paper.jpg" /> -->
-<!-- <button onclick="processOnlineImage()">Read image</button> -->
+
 <!-- <br><br> -->
 
 <!-- <br><br>
