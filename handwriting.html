@@ -26,15 +26,13 @@
 
 		Change Font Size<br>
         <div>
-            <button class="btn btn-primary" id ="increaseFont" onclick="increaseFont()">+</button>
-            <button class="btn btn-primary" id ="decreaseFont" onclick="decreaseFont()">-</button>
+            <button class="btn btn-primary" id ="increaseFont" onclick="changeFontSize(3)">+</button>
+            <button class="btn btn-primary" id ="decreaseFont" onclick="changeFontSize(-3)">-</button>
         </div><br>
 
         <div id ="fontChange">
         <button type="button" onclick="changeFont()">Change Font</button>
         </div>
-        
-
     </div>
     
     <div class="col-sm-8 text-left" style="height: 650px">
@@ -73,8 +71,6 @@ Accepts PDFs and images (JPG and PNG).
 
 <script type="text/javascript">
 
-	
-
     // Replace or verify the region.
     //
     // You must use the same region in your REST API call as you used to obtain your subscription keys.
@@ -90,11 +86,8 @@ Accepts PDFs and images (JPG and PNG).
 	 * black/white respectively
 	 */
     function changeContrast() {
-
         var checkBox = document.getElementById("myCheck");
         var textArea = document.getElementById("displayText");
-
-
         if(checkBox.checked) {
             //alert("checked");
             textArea.style.backgroundColor = "black";
@@ -103,34 +96,16 @@ Accepts PDFs and images (JPG and PNG).
             textArea.style.backgroundColor = "white";
             textArea.style.color = "black";
         }
-
-
     }
 
     /*
-     *  increases the text-box font by two points
+     *  changes the text-box font size by "delta" points
      */
-    function increaseFont() {
-
+    function changeFontSize(delta) {
         var textArea = document.getElementById("displayText");
-
         style = window.getComputedStyle(textArea, null).getPropertyValue('font-size');
         currentSize = parseFloat(style);
-        textArea.style.fontSize = (currentSize + 5) + 'px';
-
-    }
-
-    /*
-     *  decreases the text-box font by two points
-     */
-    function decreaseFont() {
-
-        var textArea = document.getElementById("displayText");
-
-        style = window.getComputedStyle(textArea, null).getPropertyValue('font-size');
-        currentSize = parseFloat(style);
-        textArea.style.fontSize = (currentSize - 2) + 'px';
-
+        textArea.style.fontSize = (currentSize + delta) + 'px';
     }
 
     /**
@@ -154,15 +129,11 @@ Accepts PDFs and images (JPG and PNG).
     var textFile = null,
     makeTextFile = function (text) {
         var data = new Blob([text], {type: 'text/plain'});
-
-	    // If we are replacing a previously generated file we need to
-	    // manually revoke the object URL to avoid memory leaks.
 	    if (textFile !== null) {
+	    	// revoke previous file's object URL to avoid memory leaks
 	    	window.URL.revokeObjectURL(textFile);
 	    }
-
         textFile = window.URL.createObjectURL(data);
-
         return textFile;
     };
 
@@ -186,10 +157,8 @@ Accepts PDFs and images (JPG and PNG).
     function b64toBlob(b64Data, contentType, sliceSize) {
         contentType = contentType || '';
         sliceSize = sliceSize || 512;
-
         var byteCharacters = atob(b64Data);
         var byteArrays = [];
-
         for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
             var slice = byteCharacters.slice(offset, offset + sliceSize);
 
@@ -202,18 +171,14 @@ Accepts PDFs and images (JPG and PNG).
 
             byteArrays.push(byteArray);
         }
-
-        var blob = new Blob(byteArrays, {type: contentType});
-        return blob;
+        return new Blob(byteArrays, {type: contentType});
     }
 
    function handleFiles(files) {
         var file = files[0];
         var type = file.type;
         console.log(file);
-        
         setDownloadName(file.name);
-
         if (type === "image/jpeg" || type === "image/png") {
             console.log("You uploaded an image");
             var reader = new FileReader();
@@ -224,7 +189,6 @@ Accepts PDFs and images (JPG and PNG).
             reader.readAsDataURL(file);
             processImage(file);
         }
-
         else if (type === "application/pdf") {
             console.log("You uploaded a pdf");
             processPDF(file);
@@ -234,31 +198,27 @@ Accepts PDFs and images (JPG and PNG).
         }
     }
 
-   function setDownloadName(fileName) {
-	   console.log(fileName);
-	   // default name
-	   var downloadName = "A11yText.txt";
-	   
+   	function setDownloadName(fileName) {
+	   	console.log(fileName);
+	   	// default name
+	   	var downloadName = "A11yText.txt";
 	   	if (fileName.endsWith(".jpg") || fileName.endsWith(".pdf") || fileName.endsWith(".png")
-	   			|| fileName.endsWith(".jpeg")) {
-	   		// Know what to do, so we customize the name by removing the original file extension
+	   								  || fileName.endsWith(".jpeg")) {
+	   		// We know what to do, so we customize the name by removing the original file extension
 	   		// and adding .txt
 	   		downloadName = fileName.substring(0, fileName.lastIndexOf(".")) + ".txt";
 	   	}
-	   	
 	   	// set the download attribute to be used when "download" is clicked
 	   	document.getElementById("downloadLink").download = downloadName;
    }
     
-    function processPDF(pdfFile){
+    function processPDF(pdfFile) {
+    	$("#displayText").val("PDF being converted. Please wait.");
         var formData = new FormData();
         formData.append('File', pdfFile, pdfFile.name);
         formData.append('JpgQuality', '50');
         formData.append('ImageResolutionH', '200');
         formData.append('ImageResolutionV', '200');
-        
-        $("#displayText").val("PDF being converted. Please wait.");
-
         $.ajax({
             url: 'https://v2.convertapi.com/pdf/to/jpg?Secret=DrS0i33shLt0ZnHj',
             data: formData,
@@ -289,21 +249,10 @@ Accepts PDFs and images (JPG and PNG).
                 processImage(file);
             }
         })
-        
         .fail(function() {
         	document.getElementById('displayText').value = "";
         	alert("PDF converter is down: please upload images only");
         })
-        
-
-
-    }
-    
-    function processOnlineImage(){
-        var sourceImageUrl = document.getElementById("displayText").value;
-        console.log(sourceImageUrl);
-        var imageData = '{"url": ' + '"' + sourceImageUrl + '"}'
-        processImage(imageData);
     }
 
     function processImage(imageFile) {
@@ -412,10 +361,6 @@ Accepts PDFs and images (JPG and PNG).
                 }
 
             });
-
-
-
-
         $.ajax({
             url: uriBase + "RecognizeText?" + $.param(params),
 
@@ -424,41 +369,32 @@ Accepts PDFs and images (JPG and PNG).
                 jqXHR.setRequestHeader("Content-Type","application/json");
                 jqXHR.setRequestHeader("Ocp-Apim-Subscription-Key", subscriptionKey);
             },
-
             // request body
             type: "POST",
             data: imageFile
-
         })
 
         .done(function(data, textStatus, jqXHR) {
             // Show progress.
             $("#displayText").val("Handwritten text submitted. Waiting 10 seconds to retrieve the recognized text.");
-
             // Note: The response may not be immediately available. Handwriting recognition is an
             // async operation that can take a variable amount of time depending on the length
             // of the text you want to recognize. You may need to wait or retry this GET operation.
             //
             // Wait ten seconds before making the second REST API call.
-
             setTimeout(function () {
-
                 // The "Operation-Location" in the response contains the URI to retrieve the recognized text.
                 var operationLocation = jqXHR.getResponseHeader("Operation-Location");
-
                 // Perform the second REST API call and get the response.
                 $.ajax({
                     url: operationLocation,
-
                     // Request headers.
                     beforeSend: function(jqXHR){
                         jqXHR.setRequestHeader("Content-Type","application/json");
                         jqXHR.setRequestHeader("Ocp-Apim-Subscription-Key", subscriptionKey);
                     },
-
                     type: "GET",
                 })
-
                 .done(function(data) {
                     // Show formatted JSON on webpage.
                     /*$("#responseTextArea").val(JSON.stringify(data, null, 2));
@@ -475,7 +411,6 @@ Accepts PDFs and images (JPG and PNG).
                     }
                     $("#responseTextArea").val(s);*/
                 })
-
                 .fail(function(jqXHR, textStatus, errorThrown) {
                     // Display error message.
                     var errorString = (errorThrown === "") ? "Error. " : errorThrown + " (" + jqXHR.status + "): ";
@@ -484,11 +419,7 @@ Accepts PDFs and images (JPG and PNG).
                     alert(errorString);
                 });
             }, 10000);
-
-
-
         })
-
         .fail(function(jqXHR, textStatus, errorThrown) {
             // Put the JSON description into the text area.
             //$("#responseTextArea").val(JSON.stringify(jqXHR, null, 2));
@@ -499,9 +430,6 @@ Accepts PDFs and images (JPG and PNG).
                 jQuery.parseJSON(jqXHR.responseText).message : jQuery.parseJSON(jqXHR.responseText).error.message;
             alert(errorString);
         });
-        
-
-
     };
     
     /*function processImage() {
@@ -572,18 +500,23 @@ Accepts PDFs and images (JPG and PNG).
         });
     };*/
 
-     function readURL(input) {
-         if (input.files && input.files[0]) {
-             var reader = new FileReader();
+    function readURL(input) {
+       	if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                $('#sourceImage')
+                    .attr('src', e.target.result);
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
     
-             reader.onload = function (e) {
-                 $('#sourceImage')
-                     .attr('src', e.target.result);
-             };
-    
-             reader.readAsDataURL(input.files[0]);
-         }
-     }
+    function processOnlineImage(){
+        var sourceImageUrl = document.getElementById("displayText").value;
+        console.log(sourceImageUrl);
+        var imageData = '{"url": ' + '"' + sourceImageUrl + '"}'
+        processImage(imageData);
+    }
 </script>
 <h2>Convert PDFs and Images to Text</h2>
 </body>
