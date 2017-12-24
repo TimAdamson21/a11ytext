@@ -55,7 +55,7 @@ Accepts PDFs and images (JPG and PNG).
 <!-- <input type="text" name="inputImage" id="inputImage" value="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Cursive_Writing_on_Notebook_paper.jpg/800px-Cursive_Writing_on_Notebook_paper.jpg" /> -->
 <!-- <button onclick="handleFiles([document.getElementById('inputImage').value])">Read image</button> -->
 <!--  <br><br> -->
-<input type="file" id="input" multiple onchange="handleFiles(this.files)">
+<input type="file" id="input" onchange="handleFiles(this.files)">
 <br><br>
 <button id="create" onclick="download()">Create file</button> <a download="A11yText.txt" id="downloadLink" style="display: none">Download</a>
 
