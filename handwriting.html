@@ -2,11 +2,14 @@
 <html lang="en-US">
 <head>
     <title>Handwriting</title>
+    <link rel="icon">
+    <meta charset="UTF-8">
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/superagent/3.5.2/superagent.min.js"></script>
     <link rel="stylesheet" type="text/css" href="a11ytext.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<style>body {font-size:12pt}</style>
 </head>
 <body>
 
@@ -14,20 +17,21 @@
   <div class="row content">
     <div class="col-sm-2 sidenav">
 
+		Change Contrast<br>
         <label class="switch">
 
             <input id ="myCheck" type="checkbox" onclick="changeContrast()">
             <span class="slider round"></span>
-        </label>
+        </label><br>
 
-
+		Change Font Size<br>
         <div>
             <button class="btn btn-primary" id ="increaseFont" onclick="increaseFont()">+</button>
             <button class="btn btn-primary" id ="decreaseFont" onclick="decreaseFont()">-</button>
-        </div>
+        </div><br>
 
         <div id ="fontChange">
-        <button type="button" onclick="changeFont()">Change the font</button>
+        <button type="button" onclick="changeFont()">Change Font</button>
         </div>
         
 
@@ -37,16 +41,23 @@
       <textarea id="displayText" style="width:100%; height:100%;"></textarea>
   </div>
   <div class="col-sm-2 sidenav">
-    
+  
+Print
+<label class="switch" name="choose handwriting or printed text">
+
+    <input id ="handwritingCheck" type="checkbox">
+    <span class="slider round"></span>
+</label>
+By Hand<br><br>
+
 Accepts PDFs and images (JPG and PNG).
 <br><br>
 <!-- <input type="text" name="inputImage" id="inputImage" value="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Cursive_Writing_on_Notebook_paper.jpg/800px-Cursive_Writing_on_Notebook_paper.jpg" /> -->
 <!-- <button onclick="handleFiles([document.getElementById('inputImage').value])">Read image</button> -->
 <!--  <br><br> -->
 <input type="file" id="input" multiple onchange="handleFiles(this.files)">
-If multiple, first file used.<br>
 <br><br>
-<button id="create" onclick="download()">Create file</button> <a download="A11yText.txt" id="downloadlink" style="display: none">Download</a>
+<button id="create" onclick="download()">Create file</button> <a download="A11yText.txt" id="downloadLink" style="display: none">Download</a>
 
 
 
@@ -61,6 +72,18 @@ If multiple, first file used.<br>
 </div>
 
 <script type="text/javascript">
+
+	
+
+    // Replace or verify the region.
+    //
+    // You must use the same region in your REST API call as you used to obtain your subscription keys.
+    // For example, if you obtained your subscription keys from the westus region, replace
+    // "westcentralus" in the URI below with "westus".
+    //
+    // NOTE: Free trial subscription keys are generated in the westcentralus region, so if you are using
+    // a free trial subscription key, you should not need to change this region.
+    var uriBase = "https://westcentralus.api.cognitive.microsoft.com/vision/v1.0/";
 
 	/*
 	 * changes the contrast back and forth between the text/background being
@@ -146,7 +169,7 @@ If multiple, first file used.<br>
     function download() {
         var create = document.getElementById('create'),
         textbox = document.getElementById('displayText');
-        var link = document.getElementById('downloadlink');
+        var link = document.getElementById('downloadLink');
         link.href = makeTextFile(textbox.value);
         link.style.display = 'block';
     }
@@ -202,7 +225,7 @@ If multiple, first file used.<br>
             processImage(file);
         }
 
-        else if (type === "application/pdf"){
+        else if (type === "application/pdf") {
             console.log("You uploaded a pdf");
             processPDF(file);
         }
@@ -224,7 +247,7 @@ If multiple, first file used.<br>
 	   	}
 	   	
 	   	// set the download attribute to be used when "download" is clicked
-	   	document.getElementById("downloadlink").download = downloadName;
+	   	document.getElementById("downloadLink").download = downloadName;
    }
     
     function processPDF(pdfFile){
@@ -266,6 +289,12 @@ If multiple, first file used.<br>
                 processImage(file);
             }
         })
+        
+        .fail(function() {
+        	document.getElementById('displayText').value = "";
+        	alert("PDF converter is down: please upload images only");
+        })
+        
 
 
     }
@@ -278,23 +307,12 @@ If multiple, first file used.<br>
     }
 
     function processImage(imageFile) {
-        // **********************************************
+    	// **********************************************
         // *** Update or verify the following values. ***
         // **********************************************
 
         // Replace the subscriptionKey string value with your valid subscription key.
         var subscriptionKey = "77a01c5eff1f47c4812a001a082c7728";
-
-        // Replace or verify the region.
-        //
-        // You must use the same region in your REST API call as you used to obtain your subscription keys.
-        // For example, if you obtained your subscription keys from the westus region, replace
-        // "westcentralus" in the URI below with "westus".
-        //
-        // NOTE: Free trial subscription keys are generated in the westcentralus region, so if you are using
-        // a free trial subscription key, you should not need to change this region.
-        var uriBase = "https://westcentralus.api.cognitive.microsoft.com/vision/v1.0/RecognizeText?";
-
         // Request parameters.
         var params = {
             "handwriting": "true",
@@ -311,7 +329,7 @@ If multiple, first file used.<br>
 
 
         superagent
-            .post(uriBase + $.param(params))
+            .post(uriBase + "RecognizeText?" + $.param(params))
 
             .set("Content-Type", "application/octet-stream")
 
@@ -399,7 +417,7 @@ If multiple, first file used.<br>
 
 
         $.ajax({
-            url: uriBase + $.param(params),
+            url: uriBase + "RecognizeText?" + $.param(params),
 
             // Request headers.
             beforeSend: function(jqXHR){
@@ -407,10 +425,8 @@ If multiple, first file used.<br>
                 jqXHR.setRequestHeader("Ocp-Apim-Subscription-Key", subscriptionKey);
             },
 
+            // request body
             type: "POST",
-            //contentType: 'application/octet-stream',
-            // Request body.
-            //processData: false,
             data: imageFile
 
         })
@@ -487,6 +503,74 @@ If multiple, first file used.<br>
 
 
     };
+    
+    /*function processImage() {
+        // **********************************************
+        // *** Update or verify the following values. ***
+        // **********************************************
+
+        // Replace the subscriptionKey string value with your valid subscription key.
+        var subscriptionKey = "fe66b70c2b2e45b4a7cb2a39b001e17e";
+
+        // Request parameters.
+        var params = {
+            "language": "unk",
+            "detectOrientation ": "true",
+        };
+
+        // Display the image.
+        var sourceImageUrl = document.getElementById("inputImage").value;
+        document.querySelector("#sourceImage").src = sourceImageUrl;
+
+        // Perform the REST API call.
+        $.ajax({
+            url: uriBase + "ocr?" + $.param(params),
+
+            // Request headers.
+            beforeSend: function(jqXHR){
+                jqXHR.setRequestHeader("Content-Type","application/json");
+                jqXHR.setRequestHeader("Ocp-Apim-Subscription-Key", subscriptionKey);
+            },
+
+            type: "POST",
+
+            // Request body.
+            data: '{"url": "' + sourceImageUrl + '"}',
+        })
+
+        .done(function(data) {
+            // Show formatted JSON on webpage.
+            //$("#responseTextArea").val(JSON.stringify(data, null, 2));
+            //console.log(JSON.stringify(data, null, 2));
+            var obj = JSON.parse(JSON.stringify(data, null, 2));
+
+            regions = obj.regions;
+            for (var a = 0; a < regions.length; a++) {
+                lines = regions[a].lines;
+                for (var i = 0; i < lines.length; i++) {
+                    sentence ="";
+                    words = lines[i].words;
+                    for (var j = 0; j < words.length; j++) {
+                     sentence += words[j].text + " ";
+                 }
+
+                 //console.log(sentence);
+                 document.getElementById("displayText").value += sentence + '\n';
+             }
+         }
+
+
+
+     })
+
+        .fail(function(jqXHR, textStatus, errorThrown) {
+            // Display error message.
+            var errorString = (errorThrown === "") ? "Error. " : errorThrown + " (" + jqXHR.status + "): ";
+            errorString += (jqXHR.responseText === "") ? "" : (jQuery.parseJSON(jqXHR.responseText).message) ?
+            jQuery.parseJSON(jqXHR.responseText).message : jQuery.parseJSON(jqXHR.responseText).error.message;
+            alert(errorString);
+        });
+    };*/
 
      function readURL(input) {
          if (input.files && input.files[0]) {
@@ -501,24 +585,6 @@ If multiple, first file used.<br>
          }
      }
 </script>
-<h2>Convert Handwriting Images to Text</h2>
-<!-- Enter the URL to an image of handwritten text, then click the <strong>Read image</strong> button. -->
-<!-- <br><br> -->
-
-<!-- <br><br> -->
-
-<!-- <br><br>
-  <div id="wrapper" style="width:1020px; display:table;">
-    <div id="jsonOutput" style="width:600px; display:table-cell;">
-        Response:
-        <br><br>
-        <textarea id="responseTextArea" class="UIInput" style="width:580px; height:400px;"></textarea>
-    </div>
-    <div id="imageDiv" style="width:420px; display:table-cell;">
-        Source image:
-        <br><br>
-          <img id="sourceImage" width="400" />
-    </div> -->
-</div>
+<h2>Convert PDFs and Images to Text</h2>
 </body>
 </html>
