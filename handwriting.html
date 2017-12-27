@@ -17,26 +17,28 @@
   <div class="row content">
     <div class="col-sm-2 sidenav">
 
-		Change Contrast<br>
+		Contrast<br>
         <label class="switch">
 
             <input id ="myCheck" type="checkbox" onclick="changeContrast()">
             <span class="slider round"></span>
         </label><br>
 
-		Change Font Size<br>
+		Font Size<br>
         <div>
             <button class="btn btn-primary" id ="increaseFont" onclick="changeFontSize(3)">+</button>
             <button class="btn btn-primary" id ="decreaseFont" onclick="changeFontSize(-3)">-</button>
         </div><br>
 
         <div id ="fontChange">
-        <button type="button" onclick="changeFont()">Change Font</button>
+        <button type="button" onclick="changeFont()">Font Type</button>
         </div>
+        <br>
+        <textarea readonly id="conversionStatus" style="width:100%; height:100px;"></textarea>
     </div>
     
     <div class="col-sm-8 text-left" style="height: 650px">
-      <textarea id="displayText" style="width:100%; height:100%;"></textarea>
+      <textarea readonly id="displayText" style="width:100%; height:100%;"></textarea>
   </div>
   <div class="col-sm-2 sidenav">
   
@@ -50,10 +52,10 @@ By Hand<br><br>
 
 Accepts PDFs and images (JPG and PNG).
 <br><br>
-<!-- <input type="text" name="inputImage" id="inputImage" value="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Cursive_Writing_on_Notebook_paper.jpg/800px-Cursive_Writing_on_Notebook_paper.jpg" /> -->
-<!-- <button onclick="handleFiles([document.getElementById('inputImage').value])">Read image</button> -->
-<!--  <br><br> -->
-<input type="file" id="input" onchange="handleFiles(this.files)">
+<input type="text" name="inputImage" id="inputImage" value="https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Atomist_quote_from_Democritus.png/338px-Atomist_quote_from_Democritus.png" />
+<button onclick="handleFile(null)">Read image</button>
+<br><br>
+<input type="file" id="input" onchange="handleFile(this.files[0])">
 <br><br>
 <button id="create" onclick="download()">Create file</button> <a download="A11yText.txt" id="downloadLink" style="display: none">Download</a>
 
@@ -154,121 +156,76 @@ Accepts PDFs and images (JPG and PNG).
         return new File([u8arr], filename, {type:mime});
     }
 
-    function b64toBlob(b64Data, contentType, sliceSize) {
-        contentType = contentType || '';
-        sliceSize = sliceSize || 512;
-        var byteCharacters = atob(b64Data);
-        var byteArrays = [];
-        for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-            var slice = byteCharacters.slice(offset, offset + sliceSize);
-
-            var byteNumbers = new Array(slice.length);
-            for (var i = 0; i < slice.length; i++) {
-                byteNumbers[i] = slice.charCodeAt(i);
-            }
-
-            var byteArray = new Uint8Array(byteNumbers);
-
-            byteArrays.push(byteArray);
-        }
-        return new Blob(byteArrays, {type: contentType});
-    }
-
-   function handleFiles(files) {
-        var file = files[0];
-        var type = file.type;
-        console.log(file);
-        setDownloadName(file.name);
-        if (type === "image/jpeg" || type === "image/png") {
-            console.log("You uploaded an image");
-            var reader = new FileReader();
-            reader.onload = function (e) {
-                $('#sourceImage')
-                    .attr('src', e.target.result);
-            };
-            reader.readAsDataURL(file);
-            processImage(file);
-        }
-        else if (type === "application/pdf") {
-            console.log("You uploaded a pdf");
+   	function handleFile(file) {
+   		$("#conversionStatus").val("Converting to text. Please wait 10 seconds.");
+        if (file.type === "image/jpeg" || file.type === "image/png") {
+            // user uploaded an image
+            var newText = processImage(file, true, true);
+        } else if (file.type === "application/pdf") {
+            // user uploaded a pdf
             processPDF(file);
-        }
-        else {
-            console.error("Illegal file type");
+        } else {
+            alert("Illegal file type.");
         }
     }
+   	
+   	function urlToDownloadName(url) {
+	  	return url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf(".")) + ".txt";
+   	}
 
-   	function setDownloadName(fileName) {
-	   	console.log(fileName);
-	   	// default name
-	   	var downloadName = "A11yText.txt";
-	   	if (fileName.endsWith(".jpg") || fileName.endsWith(".pdf") || fileName.endsWith(".png")
-	   								  || fileName.endsWith(".jpeg")) {
-	   		// We know what to do, so we customize the name by removing the original file extension
-	   		// and adding .txt
-	   		downloadName = fileName.substring(0, fileName.lastIndexOf(".")) + ".txt";
-	   	}
-	   	// set the download attribute to be used when "download" is clicked
-	   	document.getElementById("downloadLink").download = downloadName;
-   }
+   	function fileToDownloadName(fileName) {
+	  	return fileName.substring(0, fileName.lastIndexOf(".")) + ".txt";
+   	}
     
-    function processPDF(pdfFile) {
-    	$("#displayText").val("PDF being converted. Please wait.");
+   	function processPDF(pdfFile) {
         var formData = new FormData();
         formData.append('File', pdfFile, pdfFile.name);
         formData.append('JpgQuality', '50');
         formData.append('ImageResolutionH', '200');
         formData.append('ImageResolutionV', '200');
         $.ajax({
-            url: 'https://v2.convertapi.com/pdf/to/jpg?Secret=DrS0i33shLt0ZnHj',
+            url: 'https://v2.convertapi.com/pdf/to/jpg?Secret=cNcz3EUfhq9dTdZc',
             data: formData,
             processData: false,
             contentType: false,
             method: 'POST',
             success: function(data) {
-                console.log("We had success!");
-                console.log(data);
-                var urlString = "data:text/plain;base64," + data.Files[0].FileData;
-
-                
-                var blob = b64toBlob(data.Files[0].FileData, "image/jpeg")
-                console.log(blob);
-                //var file = new File(blob, "image111.jpg");
-                
-
-                var file = dataURLtoFile(urlString, "hello.txt");
-
-                var reader = new FileReader();
-                reader.onload = function (e) {
-                    $('#sourceImage')
-                        .attr('src', e.target.result);
-                };
-                reader.readAsDataURL(file);
-
-                console.log(file);
+            	// pdf conversion successful
+            	// process the first page
+            	var urlString = "data:text/plain;base64," + data.Files[0].FileData;
+                var file = dataURLtoFile(urlString, pdfFile.name);
                 processImage(file);
             }
         })
         .fail(function() {
+        	// give error alert, since PDF conversion failed
         	document.getElementById('displayText').value = "";
-        	alert("PDF converter is down: please upload images only");
+        	alert("Error converting PDF.");
         })
     }
 
-    function processImage(imageFile) {
+    function processImage(image) {
+    	var downloadName;
+    	if (image == null) {
+    		var sourceImageUrl = document.getElementById("inputImage").value;
+    		document.querySelector("#sourceImage").src = sourceImageUrl;
+    		downloadName = urlToDownloadName(sourceImageUrl);
+    		image = '{"url": "' + sourceImageUrl + '"}';
+    	} else {
+    		displaySourceImage(image);
+        	downloadName = fileToDownloadName(image.name);
+    	}
+    	// set the download attribute to be used when "download" is clicked
+    	document.getElementById("downloadLink").download = downloadName;
     	// **********************************************
-        // *** Update or verify the following values. ***
+        // *** Update or verify the subscriptionKey string value with your valid subscription key. ***
         // **********************************************
-
-        // Replace the subscriptionKey string value with your valid subscription key.
         var subscriptionKey = "77a01c5eff1f47c4812a001a082c7728";
+
         // Request parameters.
         var params = {
             "handwriting": "true",
         };
-
-        // Display the image.
-
 
         // This operation requrires two REST API calls. One to submit the image for processing,
 
@@ -285,26 +242,22 @@ Accepts PDFs and images (JPG and PNG).
             .set("x-ms-version", "2017-04-17")
 
             .set("x-ms-blob-type", "BlockBlob")
-
-            .set("x-ms-blob-content-type", imageFile.type)
+            
+            .set("x-ms-blob-content-type", image.type)
 
             .set("Ocp-Apim-Subscription-Key", subscriptionKey)
 
-            .send(imageFile)
+            .send(image)
 
             .end(function(err, res) {
 
                 if (err) {
+                	
+                	alert("Conversion failed.")
 
                     console.log(err);
-
-                    console.dir(res);
 
                 } else {
-                    console.log(err);
-                    console.log(res);
-                    $("#displayText").val("Handwritten text submitted. Please wait 10 seconds.");
-
                     // Note: The response may not be immediately available. Handwriting recognition is an
                     // async operation that can take a variable amount of time depending on the length
                     // of the text you want to recognize. You may need to wait or retry this GET operation.
@@ -330,22 +283,19 @@ Accepts PDFs and images (JPG and PNG).
                         })
 
                             .done(function(data) {
-                                // Show formatted JSON on webpage.
-                               //$("#responseTextArea").val(JSON.stringify(data, null, 2));
-
                                var obj = JSON.parse(JSON.stringify(data, null, 2));
 
                                 // var lines = obj.recognitionResult.lines.sort((a, b) => a.boundingBox[1] - b.boundingBox[1]);
                                 var lines = obj.recognitionResult.lines;
-
-                               var s = '';
+                                
+                                var result = '';
 
                                 for(var i = 0; i < lines.length; i+=1) {
                                     var line = lines[i];
-                                    s += line.text + '\n';
-                                    // console.log(line.text);
+                                    result += line.text + '\n';
                                 }
-                                $("#displayText").val(s);
+                               	$("#displayText").val(result);
+                             	$("#conversionStatus").val("Conversion complete.");
                             })
 
                             .fail(function(jqXHR, textStatus, errorThrown) {
@@ -361,154 +311,15 @@ Accepts PDFs and images (JPG and PNG).
                 }
 
             });
-        $.ajax({
-            url: uriBase + "RecognizeText?" + $.param(params),
-
-            // Request headers.
-            beforeSend: function(jqXHR){
-                jqXHR.setRequestHeader("Content-Type","application/json");
-                jqXHR.setRequestHeader("Ocp-Apim-Subscription-Key", subscriptionKey);
-            },
-            // request body
-            type: "POST",
-            data: imageFile
-        })
-
-        .done(function(data, textStatus, jqXHR) {
-            // Show progress.
-            $("#displayText").val("Handwritten text submitted. Waiting 10 seconds to retrieve the recognized text.");
-            // Note: The response may not be immediately available. Handwriting recognition is an
-            // async operation that can take a variable amount of time depending on the length
-            // of the text you want to recognize. You may need to wait or retry this GET operation.
-            //
-            // Wait ten seconds before making the second REST API call.
-            setTimeout(function () {
-                // The "Operation-Location" in the response contains the URI to retrieve the recognized text.
-                var operationLocation = jqXHR.getResponseHeader("Operation-Location");
-                // Perform the second REST API call and get the response.
-                $.ajax({
-                    url: operationLocation,
-                    // Request headers.
-                    beforeSend: function(jqXHR){
-                        jqXHR.setRequestHeader("Content-Type","application/json");
-                        jqXHR.setRequestHeader("Ocp-Apim-Subscription-Key", subscriptionKey);
-                    },
-                    type: "GET",
-                })
-                .done(function(data) {
-                    // Show formatted JSON on webpage.
-                    /*$("#responseTextArea").val(JSON.stringify(data, null, 2));
-
-                    obj = JSON.parse(JSON.stringify(data, null, 2));
-
-                    var lines = obj.recognitionResult.lines.sort((a, b) => a.boundingBox[1] - b.boundingBox[1]);
-
-                    s = '';
-
-                    for(i = 0; i < lines.length; i+=1) {
-                      var line = lines[i];
-                      s += line.text + '\n';
-                    }
-                    $("#responseTextArea").val(s);*/
-                })
-                .fail(function(jqXHR, textStatus, errorThrown) {
-                    // Display error message.
-                    var errorString = (errorThrown === "") ? "Error. " : errorThrown + " (" + jqXHR.status + "): ";
-                    errorString += (jqXHR.responseText === "") ? "" : (jQuery.parseJSON(jqXHR.responseText).message) ?
-                        jQuery.parseJSON(jqXHR.responseText).message : jQuery.parseJSON(jqXHR.responseText).error.message;
-                    alert(errorString);
-                });
-            }, 10000);
-        })
-        .fail(function(jqXHR, textStatus, errorThrown) {
-            // Put the JSON description into the text area.
-            //$("#responseTextArea").val(JSON.stringify(jqXHR, null, 2));
-
-            // Display error message.
-            var errorString = (errorThrown === "") ? "Error. " : errorThrown + " (" + jqXHR.status + "): ";
-            errorString += (jqXHR.responseText === "") ? "" : (jQuery.parseJSON(jqXHR.responseText).message) ?
-                jQuery.parseJSON(jqXHR.responseText).message : jQuery.parseJSON(jqXHR.responseText).error.message;
-            alert(errorString);
-        });
     };
-    
-    /*function processImage() {
-        // **********************************************
-        // *** Update or verify the following values. ***
-        // **********************************************
 
-        // Replace the subscriptionKey string value with your valid subscription key.
-        var subscriptionKey = "fe66b70c2b2e45b4a7cb2a39b001e17e";
-
-        // Request parameters.
-        var params = {
-            "language": "unk",
-            "detectOrientation ": "true",
+    function displaySourceImage(file) {
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            $('#sourceImage')
+                .attr('src', e.target.result);
         };
-
-        // Display the image.
-        var sourceImageUrl = document.getElementById("inputImage").value;
-        document.querySelector("#sourceImage").src = sourceImageUrl;
-
-        // Perform the REST API call.
-        $.ajax({
-            url: uriBase + "ocr?" + $.param(params),
-
-            // Request headers.
-            beforeSend: function(jqXHR){
-                jqXHR.setRequestHeader("Content-Type","application/json");
-                jqXHR.setRequestHeader("Ocp-Apim-Subscription-Key", subscriptionKey);
-            },
-
-            type: "POST",
-
-            // Request body.
-            data: '{"url": "' + sourceImageUrl + '"}',
-        })
-
-        .done(function(data) {
-            // Show formatted JSON on webpage.
-            //$("#responseTextArea").val(JSON.stringify(data, null, 2));
-            //console.log(JSON.stringify(data, null, 2));
-            var obj = JSON.parse(JSON.stringify(data, null, 2));
-
-            regions = obj.regions;
-            for (var a = 0; a < regions.length; a++) {
-                lines = regions[a].lines;
-                for (var i = 0; i < lines.length; i++) {
-                    sentence ="";
-                    words = lines[i].words;
-                    for (var j = 0; j < words.length; j++) {
-                     sentence += words[j].text + " ";
-                 }
-
-                 //console.log(sentence);
-                 document.getElementById("displayText").value += sentence + '\n';
-             }
-         }
-
-
-
-     })
-
-        .fail(function(jqXHR, textStatus, errorThrown) {
-            // Display error message.
-            var errorString = (errorThrown === "") ? "Error. " : errorThrown + " (" + jqXHR.status + "): ";
-            errorString += (jqXHR.responseText === "") ? "" : (jQuery.parseJSON(jqXHR.responseText).message) ?
-            jQuery.parseJSON(jqXHR.responseText).message : jQuery.parseJSON(jqXHR.responseText).error.message;
-            alert(errorString);
-        });
-    };*/
-
-    function readURL(input) {
-       	if (input.files && input.files[0]) {
-            var reader = new FileReader();
-            reader.onload = function (e) {
-                $('#sourceImage')
-                    .attr('src', e.target.result);
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
+        reader.readAsDataURL(file);
     }
     
     function processOnlineImage(){
