@@ -102,6 +102,10 @@ Multi-page PDFs: only converts first page.
         }
     }
 
+	/**
+	 * takes text (e.g. from within a textbox)
+	 * returns a text file
+	 */
     var textFile = null,
     makeTextFile = function (text) {
         var data = new Blob([text], {type: 'text/plain'});
@@ -113,13 +117,20 @@ Multi-page PDFs: only converts first page.
         return textFile;
     };
 
-    function download() {
+    /**
+     * prepares download button by creating the file and making the button visible
+     */
+    function prepareDownload() {
         var textbox = document.getElementById('displayText');
         var link = document.getElementById('downloadLink');
         link.href = makeTextFile(textbox.value);
         link.style.display = 'block';
     }
 
+    /**
+     * takes a data url and a file name
+     * returns a file with the given file name
+     */
     function dataURLtoFile(dataurl, filename) {
         var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
             bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
@@ -129,8 +140,16 @@ Multi-page PDFs: only converts first page.
         return new File([u8arr], filename, {type:mime});
     }
 
+    /*
+     * handles a local file
+     * If file is pdf, jpg, or png, process it.
+     * Otherwise, if there is a file, alert the user of invalid file
+     * Otherwise, ignore it. (case when user opens file input and then cancels it,
+     *	 						in which the file is undefined)
+     */
    	function handleFile(file) {
-   		if (file === null) {
+    	document.getElementById("downloadLink").style.display = 'none';
+   		if (file === undefined) {
    			return;
    		}
         if (file.type === "image/jpeg" || file.type === "image/png") {
@@ -139,20 +158,26 @@ Multi-page PDFs: only converts first page.
             // set the download attribute to be used when "download" is clicked
             document.getElementById("downloadLink").download = fileToDownloadName(file.name);
             
-            processImage(file);
+            imageToText(file);
         } else if (file.type === "application/pdf") {
             // user uploaded a pdf
             
             // set the download attribute to be used when "download" is clicked
             document.getElementById("downloadLink").download = fileToDownloadName(file.name);
             
-            processPDF(file);
+            pdfToText(file);
         } else {
-            alert("Illegal file type.");
+            alert("Illegal file type for local file.");
         }
     }
    	
+    /**
+     * handles the urls of PDFs or images
+     * If url points to a pdf, jpg, or png, process it.
+     * Otherwise, alert the user of invalid file
+     */
    	function handleUrl() {
+   		document.getElementById("downloadLink").style.display = 'none';
    		var url = document.getElementById("inputImage").value;
    		if (!url.startsWith("http")) {
 			// add http to the beginning of the url, for the case
@@ -161,23 +186,35 @@ Multi-page PDFs: only converts first page.
 		}
    		document.getElementById("downloadLink").download = urlToDownloadName(document.getElementById("inputImage").value);
    		if (url.endsWith(".jpg") || url.endsWith(".jpeg") || url.endsWith(".png")) {
-   			processImage(null);
+   			imageToText(null);
    		} else if (url.endsWith(".pdf")) {
-   			processPDF(null);
+   			pdfToText(null);
    		} else {
-   			alert("Illegal file type");
+   			alert("Illegal file type for online file.");
    		}
    	}
    	
+    /**
+     * converts a URL into a name for the downloaded text file
+     * assumes that the url is valid and points to a PDF, JPG, or PNG
+     */
    	function urlToDownloadName(url) {
 	  	return url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf(".")) + ".txt";
    	}
 
+   	/**
+     * converts a file name into a name for the downloaded text file
+     * assumes that the file to which the name belongs is a PDF, JPG, or PNG
+     */
    	function fileToDownloadName(fileName) {
 	  	return fileName.substring(0, fileName.lastIndexOf(".")) + ".txt";
    	}
     
-   	function processPDF(pdfFile) {
+   	/**
+   	 * takes a PDF, converts it to a JPG, and then processes the JPG into text to eventually display.
+   	 * If pdfFile is null, then processes the PDF url in the input text box.
+   	 */
+   	function pdfToText(pdfFile) {
    		$("#conversionStatus").val("PDF being converted. Please wait.");
         var formData = new FormData();
         if (pdfFile === null) {
@@ -204,7 +241,7 @@ Multi-page PDFs: only converts first page.
             	// pdf conversion successful, so process the JPG of the first page
             	var urlString = "data:text/plain;base64," + data.Files[0].FileData;
                 var file = dataURLtoFile(urlString, pdfFile.name);
-                processImage(file);
+                imageToText(file);
             }
         })
         .fail(function(err) {
@@ -215,7 +252,10 @@ Multi-page PDFs: only converts first page.
         })
     }
 
-    function processImage(image) {
+   	/**
+   	 * converts a JPG or PNG into text, and writes the text to the "displayText" textbox.
+   	 */
+    function imageToText(image) {
     	$("#conversionStatus").val("Converting to text. Please wait 10 seconds.");
     	var contentType;
     	if (image == null) {
@@ -241,7 +281,7 @@ Multi-page PDFs: only converts first page.
                 "handwriting": "true",
             };
         	uriAdd = "RecognizeText?";
-        	processFunc = processHand;
+        	processFunc = handToText;
         } else {
         	subKey = ocrKey;
         	params = {
@@ -249,7 +289,7 @@ Multi-page PDFs: only converts first page.
                 "detectOrientation ": "true",
             };
         	uriAdd = "ocr?";
-        	processFunc = processPrint;
+        	processFunc = printToText;
         }
 
         // This operation requrires two REST API calls. One to submit the image for processing,
@@ -274,12 +314,18 @@ Multi-page PDFs: only converts first page.
             .end(processFunc);
     }
     
-    function processPrint(err, data) {
+   	/**
+   	 * To convert printed words to text: takes an error and the resulting text
+   	 * If there was an error, alert the user.
+   	 * Otherwise, display the text on the screen, prepare for the file download,
+   	 * and update the conversion status
+   	 */
+    function printToText(err, res) {
     	if (err) {
     		alert("Conversion failed\n" + err);
     		return;
     	}
-    	var obj = JSON.parse(JSON.stringify(data, null, 2));
+    	var obj = JSON.parse(JSON.stringify(res, null, 2));
     	regions = obj.body.regions;
     	var result = '';
     	for (var a = 0; a < regions.length; a++) {
@@ -294,11 +340,17 @@ Multi-page PDFs: only converts first page.
         	}
     	}
     	document.getElementById("displayText").value = result;
-    	download();
+    	prepareDownload();
      	$("#conversionStatus").val("Conversion complete.");
 	}
     
-    function processHand(err, res) {
+   	/**
+   	 * To convert handwriting to text: takes an error and result from first API call.
+   	 * If there was an error, alert the user.
+   	 * Otherwise, retreive text from second API call, display the text on the screen,
+   	 * prepare for the file download, and update the conversion status.
+   	 */
+    function handToText(err, res) {
 
                 if (err) {
                 	
@@ -332,9 +384,7 @@ Multi-page PDFs: only converts first page.
                         })
 
                             .done(function(data) {
-                               var obj = JSON.parse(JSON.stringify(data, null, 2));
-
-                                // var lines = obj.recognitionResult.lines.sort((a, b) => a.boundingBox[1] - b.boundingBox[1]);
+                               	var obj = JSON.parse(JSON.stringify(data, null, 2));
                                 var lines = obj.recognitionResult.lines;
                                 
                                 var result = '';
@@ -344,7 +394,7 @@ Multi-page PDFs: only converts first page.
                                     result += line.text + '\n';
                                 }
                                	$("#displayText").val(result);
-                               	download();
+                               	prepareDownload();
                              	$("#conversionStatus").val("Conversion complete.");
                             })
 
@@ -359,6 +409,10 @@ Multi-page PDFs: only converts first page.
                 }
             }
 
+    /**
+     * takes a file (binary)
+     * reads and displays it on the "sourceImage" element
+     */
     function displaySourceImage(file) {
         var reader = new FileReader();
         reader.onload = function (e) {
