@@ -57,7 +57,7 @@ Accepts PDFs and images (JPG and PNG).
 <br><br>
 <input type="file" id="input" onchange="handleFile(this.files[0])">
 <br><br>
-<button id="create" onclick="download()">Create file</button> <a download="A11yText.txt" id="downloadLink" style="display: none">Download</a>
+<a download="A11yText.txt" id="downloadLink" style="display: none; font-size:18px">Download</a>
 
 
 
@@ -70,8 +70,16 @@ Accepts PDFs and images (JPG and PNG).
 
 </div>
 </div>
+<h2>Convert PDFs and Images to Text</h2>
+</body>
 
 <script type="text/javascript">
+
+	//**********************************************
+	// *** Update or verify the subscription keys' string values with your valid subscription keys for each service. ***
+	// **********************************************
+	var handKey = "77a01c5eff1f47c4812a001a082c7728";
+	var ocrKey = "fe66b70c2b2e45b4a7cb2a39b001e17e";
 
     // Replace or verify the region.
     //
@@ -91,7 +99,6 @@ Accepts PDFs and images (JPG and PNG).
         var checkBox = document.getElementById("myCheck");
         var textArea = document.getElementById("displayText");
         if(checkBox.checked) {
-            //alert("checked");
             textArea.style.backgroundColor = "black";
             textArea.style.color = "white";
         } else {
@@ -140,8 +147,7 @@ Accepts PDFs and images (JPG and PNG).
     };
 
     function download() {
-        var create = document.getElementById('create'),
-        textbox = document.getElementById('displayText');
+        var textbox = document.getElementById('displayText');
         var link = document.getElementById('downloadLink');
         link.href = makeTextFile(textbox.value);
         link.style.display = 'block';
@@ -157,11 +163,13 @@ Accepts PDFs and images (JPG and PNG).
     }
 
    	function handleFile(file) {
-   		$("#conversionStatus").val("Converting to text. Please wait 10 seconds.");
-        if (file.type === "image/jpeg" || file.type === "image/png") {
+   		
+   		var url = document.getElementById("inputImage").value;
+        if ((file == null && (url.endsWith(".jpg") || url.endsWith(".jpeg") || url.endsWith(".png")))
+        			|| (file != null && (file.type === "image/jpeg" || file.type === "image/png"))) {
             // user uploaded an image
-            var newText = processImage(file, true, true);
-        } else if (file.type === "application/pdf") {
+            processImage(file);
+        } else if ((file == null && url.endsWith(".pdf")) || (file != null && file.type === "application/pdf")) {
             // user uploaded a pdf
             processPDF(file);
         } else {
@@ -178,11 +186,19 @@ Accepts PDFs and images (JPG and PNG).
    	}
     
    	function processPDF(pdfFile) {
+   		$("#conversionStatus").val("PDF being converted. Please wait.");
         var formData = new FormData();
-        formData.append('File', pdfFile, pdfFile.name);
+        if (pdfFile == null) {
+        	console.log("appending " + document.getElementById("inputImage").value);
+        	formData.append('Url', document.getElementById("inputImage").value);
+        } else {
+        	formData.append('File', pdfFile, pdfFile.name);
+        }
         formData.append('JpgQuality', '50');
         formData.append('ImageResolutionH', '200');
         formData.append('ImageResolutionV', '200');
+        
+        // convert PDF to JPG
         $.ajax({
             url: 'https://v2.convertapi.com/pdf/to/jpg?Secret=cNcz3EUfhq9dTdZc',
             data: formData,
@@ -194,6 +210,7 @@ Accepts PDFs and images (JPG and PNG).
             	// process the first page
             	var urlString = "data:text/plain;base64," + data.Files[0].FileData;
                 var file = dataURLtoFile(urlString, pdfFile.name);
+                console.log(file);
                 processImage(file);
             }
         })
@@ -205,39 +222,71 @@ Accepts PDFs and images (JPG and PNG).
     }
 
     function processImage(image) {
+    	$("#conversionStatus").val("Converting to text. Please wait 10 seconds.");
     	var downloadName;
+    	var contentType;
     	if (image == null) {
+    		// display image
     		var sourceImageUrl = document.getElementById("inputImage").value;
     		document.querySelector("#sourceImage").src = sourceImageUrl;
     		downloadName = urlToDownloadName(sourceImageUrl);
-    		image = '{"url": "' + sourceImageUrl + '"}';
+    		//image = '{"url": "' + sourceImageUrl + '"}';
+    		
     	} else {
     		displaySourceImage(image);
         	downloadName = fileToDownloadName(image.name);
+        	
     	}
     	// set the download attribute to be used when "download" is clicked
     	document.getElementById("downloadLink").download = downloadName;
-    	// **********************************************
-        // *** Update or verify the subscriptionKey string value with your valid subscription key. ***
-        // **********************************************
-        var subscriptionKey = "77a01c5eff1f47c4812a001a082c7728";
 
         // Request parameters.
-        var params = {
-            "handwriting": "true",
-        };
+        var subKey;
+        var params;
+        var uriAdd;
+        var processFunc;
+        contentType = "application/octet-stream";
+        if (document.getElementById("handwritingCheck").checked) {
+        	subKey = handKey;
+        	console.log("checked");
+        	params = {
+                "handwriting": "true",
+            };
+        	uriAdd = "RecognizeText?";
+        	processFunc = processHand;
+        } else {
+        	subKey = ocrKey;
+        	//contentType = "application/json";
+        	console.log("unchecked");
+        	params = {
+                "language": "unk",
+                "detectOrientation ": "true",
+            };
+        	uriAdd = "ocr?";
+        	processFunc = processPrint;
+        }
 
         // This operation requrires two REST API calls. One to submit the image for processing,
 
         // the other to retrieve the text found in the image.
         //
         // Perform the first REST API call to submit the image for processing.
+        
+        /*superagent
+            .post(uriBase + uriAdd + $.param(params))
 
+            .set("Content-Type", contentType)
+
+            .set("Ocp-Apim-Subscription-Key", subKey)
+
+            .send(image)
+
+            .then(processFunc);*/
 
         superagent
-            .post(uriBase + "RecognizeText?" + $.param(params))
+            .post(uriBase + uriAdd + $.param(params))
 
-            .set("Content-Type", "application/octet-stream")
+            .set("Content-Type", contentType)
 
             .set("x-ms-version", "2017-04-17")
 
@@ -245,11 +294,35 @@ Accepts PDFs and images (JPG and PNG).
             
             .set("x-ms-blob-content-type", image.type)
 
-            .set("Ocp-Apim-Subscription-Key", subscriptionKey)
+            .set("Ocp-Apim-Subscription-Key", subKey)
 
             .send(image)
 
-            .end(function(err, res) {
+            .end(processFunc);
+    }
+    
+    function processPrint(err, data) {
+    	console.log(data);
+    	var obj = JSON.parse(JSON.stringify(data, null, 2));
+    	regions = obj.body.regions;
+    	var result = '';
+    	for (var a = 0; a < regions.length; a++) {
+        	lines = regions[a].lines;
+        	for (var i = 0; i < lines.length; i++) {
+            	sentence ="";
+            	words = lines[i].words;
+            	for (var j = 0; j < words.length; j++) {
+                	result += words[j].text + " ";
+            	}
+            	result += '\n';
+        	}
+    	}
+    	document.getElementById("displayText").value = result;
+    	download();
+     	$("#conversionStatus").val("Conversion complete.");
+	}
+    
+    function processHand(err, res) {
 
                 if (err) {
                 	
@@ -276,7 +349,7 @@ Accepts PDFs and images (JPG and PNG).
                             // Request headers.
                             beforeSend: function(jqXHR){
                                 jqXHR.setRequestHeader("Content-Type","application/json");
-                                jqXHR.setRequestHeader("Ocp-Apim-Subscription-Key", subscriptionKey);
+                                jqXHR.setRequestHeader("Ocp-Apim-Subscription-Key", handKey);
                             },
 
                             type: "GET",
@@ -295,6 +368,7 @@ Accepts PDFs and images (JPG and PNG).
                                     result += line.text + '\n';
                                 }
                                	$("#displayText").val(result);
+                               	download();
                              	$("#conversionStatus").val("Conversion complete.");
                             })
 
@@ -306,12 +380,8 @@ Accepts PDFs and images (JPG and PNG).
                                 alert(errorString);
                             });
                     }, 10000);
-
-
                 }
-
-            });
-    };
+            }
 
     function displaySourceImage(file) {
         var reader = new FileReader();
@@ -329,6 +399,4 @@ Accepts PDFs and images (JPG and PNG).
         processImage(imageData);
     }
 </script>
-<h2>Convert PDFs and Images to Text</h2>
-</body>
 </html>
