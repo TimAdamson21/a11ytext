@@ -135,9 +135,17 @@ Multi-page PDFs: only converts first page.
    		}
         if (file.type === "image/jpeg" || file.type === "image/png") {
             // user uploaded an image
+            
+            // set the download attribute to be used when "download" is clicked
+            document.getElementById("downloadLink").download = fileToDownloadName(file.name);
+            
             processImage(file);
         } else if (file.type === "application/pdf") {
             // user uploaded a pdf
+            
+            // set the download attribute to be used when "download" is clicked
+            document.getElementById("downloadLink").download = fileToDownloadName(file.name);
+            
             processPDF(file);
         } else {
             alert("Illegal file type.");
@@ -151,6 +159,7 @@ Multi-page PDFs: only converts first page.
 			// where the url is valid except the beginning
 			document.getElementById("inputImage").value = "http://" + url;
 		}
+   		document.getElementById("downloadLink").download = urlToDownloadName(document.getElementById("inputImage").value);
    		if (url.endsWith(".jpg") || url.endsWith(".jpeg") || url.endsWith(".png")) {
    			processImage(null);
    		} else if (url.endsWith(".pdf")) {
@@ -208,23 +217,18 @@ Multi-page PDFs: only converts first page.
 
     function processImage(image) {
     	$("#conversionStatus").val("Converting to text. Please wait 10 seconds.");
-    	var downloadName;
     	var contentType;
     	if (image == null) {
     		var sourceImageUrl = document.getElementById("inputImage").value;   		
     		// display image
     		document.querySelector("#sourceImage").src = sourceImageUrl;
-    		downloadName = urlToDownloadName(sourceImageUrl);
     		
     		image = '{"url": "' + sourceImageUrl + '"}';
     		contentType = "application/json";
     	} else {
     		displaySourceImage(image);
-        	downloadName = fileToDownloadName(image.name);
         	contentType = "application/octet-stream";
     	}
-    	// set the download attribute to be used when "download" is clicked
-    	document.getElementById("downloadLink").download = downloadName;
 
         // Request parameters.
         var subKey;
@@ -249,9 +253,7 @@ Multi-page PDFs: only converts first page.
         }
 
         // This operation requrires two REST API calls. One to submit the image for processing,
-
         // the other to retrieve the text found in the image.
-        //
         // Perform the first REST API call to submit the image for processing.
 
         superagent
