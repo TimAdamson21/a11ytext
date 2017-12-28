@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <title>Handwriting</title>
+    <link rel="icon">
+    <meta charset="UTF-8">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/superagent/3.5.2/superagent.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="a11ytext.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<style>body {font-size:12pt}</style>
+</head>
+<body>
+
+    <div class="container-fluid text-center">
+  <div class="row content">
+    <div class="col-sm-2 sidenav">
+
+		Contrast
+		<br>
+        <label class="switch">
+            <input id ="myCheck" type="checkbox" onclick="changeContrast()">
+            <span class="slider round"></span>
+        </label>
+        <br><br>
+        
+        <textarea readonly id="conversionStatus" style="width:100%; height:100px;"></textarea>
+    </div>
+    
+    <div class="col-sm-8 text-left" style="height: 650px">
+      <textarea readonly id="displayText" style="width:100%; height:100%;"></textarea>
+  </div>
+  <div class="col-sm-2 sidenav">
+  
+Print
+<label class="switch" name="choose handwriting or printed text">
+
+    <input id ="handwritingCheck" type="checkbox">
+    <span class="slider round"></span>
+</label>
+By Hand<br><br>
+
+Accepts PDFs and images (JPG and PNG).
+<br><br>
+Multi-page PDFs: only converts first page.
+<br><br>
+<input type="text" name="inputImage" id="inputImage" value="https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Atomist_quote_from_Democritus.png/338px-Atomist_quote_from_Democritus.png" />
+<button onclick="handleUrl()">Read image</button>
+<br><br>
+<input type="file" id="input" onchange="handleFile(this.files[0])">
+<br><br>
+<a download="A11yText.txt" id="downloadLink" style="display: none; font-size:18px">Download</a>
+
+
+
+<div id="imageDiv" style="width:150%; display:table-cell;">
+    
+    <br><br>
+    <img id="sourceImage" width="400" />
+</div>
+  </div>
+
+</div>
+</div>
+<h2>Convert PDFs and Images to Text</h2>
+</body>
+
+<script type="text/javascript">
+	
+
+
+	//**********************************************
+	// *** Update or verify the subscription keys' string values with your valid subscription keys for each service. ***
+	// **********************************************
+	var handKey = "77a01c5eff1f47c4812a001a082c7728";
+	var ocrKey = "fe66b70c2b2e45b4a7cb2a39b001e17e";
+
+    // Replace or verify the region.
+    //
+    // You must use the same region in your REST API call as you used to obtain your subscription keys.
+    // For example, if you obtained your subscription keys from the westus region, replace
+    // "westcentralus" in the URI below with "westus".
+    //
+    // NOTE: Free trial subscription keys are generated in the westcentralus region, so if you are using
+    // a free trial subscription key, you should not need to change this region.
+    var uriBase = "https://westcentralus.api.cognitive.microsoft.com/vision/v1.0/";
+    
+	/*
+	 * changes the contrast back and forth between the text/background being
+	 * black/white respectively
+	 */
+    function changeContrast() {
+		var checkBox = document.getElementById("myCheck");
+        var textArea = document.getElementById("displayText");
+        if(checkBox.checked) {
+            textArea.style.backgroundColor = "black";
+            textArea.style.color = "white";
+        } else {
+            textArea.style.backgroundColor = "white";
+            textArea.style.color = "black";
+        }
+    }
+
+	/**
+	 * takes text (e.g. from within a textbox)
+	 * returns a text file
+	 */
+    var textFile = null,
+    makeTextFile = function (text) {
+        var data = new Blob([text], {type: 'text/plain'});
+	    if (textFile !== null) {
+	    	// revoke previous file's object URL to avoid memory leaks
+	    	window.URL.revokeObjectURL(textFile);
+	    }
+        textFile = window.URL.createObjectURL(data);
+        return textFile;
+    };
+
+    /**
+     * prepares download button by creating the file and making the button visible
+     */
+    function prepareDownload() {
+        var textbox = document.getElementById('displayText');
+        var link = document.getElementById('downloadLink');
+        link.href = makeTextFile(textbox.value);
+        link.style.display = 'block';
+    }
+
+    /**
+     * takes a data url and a file name
+     * returns a file with the given file name
+     */
+    function dataURLtoFile(dataurl, filename) {
+        var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+            bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+        while(n--){
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new File([u8arr], filename, {type:mime});
+    }
+
+    /*
+     * handles a local file
+     * If file is pdf, jpg, or png, process it.
+     * Otherwise, if there is a file, alert the user of invalid file
+     * Otherwise, ignore it. (case when user opens file input and then cancels it,
+     *	 						in which the file is undefined)
+     */
+   	function handleFile(file) {
+   		if (file === undefined) {
+   			return;
+   		}
+   		eraseResult();
+        if (file.type === "image/jpeg" || file.type === "image/png") {
+            // user uploaded an image
+            
+            // set the download attribute to be used when "download" is clicked
+            document.getElementById("downloadLink").download = fileToDownloadName(file.name);
+            
+            imageToText(file);
+        } else if (file.type === "application/pdf") {
+            // user uploaded a pdf
+            
+            // set the download attribute to be used when "download" is clicked
+            document.getElementById("downloadLink").download = fileToDownloadName(file.name);
+            
+            pdfToText(file);
+        } else {
+            alert("Illegal file type for local file.");
+        }
+    }
+   	
+    /**
+     * handles the urls of PDFs or images
+     * If url points to a pdf, jpg, or png, process it.
+     * Otherwise, alert the user of invalid file
+     */
+   	function handleUrl() {
+    	eraseResult();
+   		var url = document.getElementById("inputImage").value;
+   		if (!url.startsWith("http")) {
+			// add http to the beginning of the url, for the case
+			// where the url is valid except the beginning
+			document.getElementById("inputImage").value = "http://" + url;
+		}
+   		document.getElementById("downloadLink").download = urlToDownloadName(document.getElementById("inputImage").value);
+   		if (url.endsWith(".jpg") || url.endsWith(".jpeg") || url.endsWith(".png")) {
+   			imageToText(null);
+   		} else if (url.endsWith(".pdf")) {
+   			pdfToText(null);
+   		} else {
+   			alert("Illegal file type for online file.");
+   		}
+   	}
+   	
+    /**
+     * converts a URL into a name for the downloaded text file
+     * assumes that the url is valid and points to a PDF, JPG, or PNG
+     */
+   	function urlToDownloadName(url) {
+	  	return url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf(".")) + ".txt";
+   	}
+
+   	/**
+     * converts a file name into a name for the downloaded text file
+     * assumes that the file to which the name belongs is a PDF, JPG, or PNG
+     */
+   	function fileToDownloadName(fileName) {
+	  	return fileName.substring(0, fileName.lastIndexOf(".")) + ".txt";
+   	}
+    
+   	/**
+   	 * takes a PDF, converts it to a JPG, and then processes the JPG into text to eventually display.
+   	 * If pdfFile is null, then processes the PDF url in the input text box.
+   	 */
+   	function pdfToText(pdfFile) {
+   		$("#conversionStatus").val("PDF being converted. Please wait.");
+        var formData = new FormData();
+        if (pdfFile === null) {
+        	pdfFile = document.getElementById("inputImage").value;
+        } else {
+        	formData.append('FileName', pdfFile.name);
+        }
+        formData.append('File', pdfFile);
+        formData.append('JpgQuality', '50');
+        formData.append('ImageResolutionH', '200');
+        formData.append('ImageResolutionV', '200');
+        
+        // only convert the first page, since that's all we are using
+        formData.append('PageRange', '1');
+        
+        // convert PDF to JPG
+        $.ajax({
+            url: 'https://v2.convertapi.com/pdf/to/jpg?Secret=cNcz3EUfhq9dTdZc',
+            data: formData,
+            processData: false,
+            contentType: false,
+            method: 'POST',
+            success: function(data) {
+            	// pdf conversion successful, so process the JPG of the first page
+            	var urlString = "data:text/plain;base64," + data.Files[0].FileData;
+                var file = dataURLtoFile(urlString, pdfFile.name);
+                imageToText(file);
+            }
+        })
+        .fail(function(err) {
+        	// give error alert, since PDF conversion failed
+        	console.log(err);
+        	document.getElementById('displayText').value = "";
+        	alert("Error converting PDF.");
+        })
+    }
+
+   	/**
+   	 * converts a JPG or PNG into text, and writes the text to the "displayText" textbox.
+   	 */
+    function imageToText(image) {
+    	$("#conversionStatus").val("Converting to text. Please wait 10 seconds.");
+    	var contentType;
+    	if (image == null) {
+    		var sourceImageUrl = document.getElementById("inputImage").value;   		
+    		// display image
+    		document.querySelector("#sourceImage").src = sourceImageUrl;
+    		
+    		image = '{"url": "' + sourceImageUrl + '"}';
+    		contentType = "application/json";
+    	} else {
+    		displaySourceImage(image);
+        	contentType = "application/octet-stream";
+    	}
+    	document.getElementById("sourceImage").style.display = 'block';
+
+        // Request parameters.
+        var subKey;
+        var params;
+        var uriAdd;
+        var processFunc;
+        if (document.getElementById("handwritingCheck").checked) {
+        	subKey = handKey;
+        	params = {
+                "handwriting": "true",
+            };
+        	uriAdd = "RecognizeText?";
+        	processFunc = handToText;
+        } else {
+        	subKey = ocrKey;
+        	params = {
+                "language": "unk",
+                "detectOrientation ": "true",
+            };
+        	uriAdd = "ocr?";
+        	processFunc = printToText;
+        }
+
+        // This operation requrires two REST API calls. One to submit the image for processing,
+        // the other to retrieve the text found in the image.
+        // Perform the first REST API call to submit the image for processing.
+
+        superagent
+            .post(uriBase + uriAdd + $.param(params))
+
+            .set("Content-Type", contentType)
+
+            .set("x-ms-version", "2017-04-17")
+
+            .set("x-ms-blob-type", "BlockBlob")
+            
+            .set("x-ms-blob-content-type", image.type)
+
+            .set("Ocp-Apim-Subscription-Key", subKey)
+
+            .send(image)
+
+            .end(processFunc);
+    }
+    
+   	/**
+   	 * To convert printed words to text: takes an error and the resulting text
+   	 * If there was an error, alert the user.
+   	 * Otherwise, display the text on the screen, prepare for the file download,
+   	 * and update the conversion status
+   	 */
+    function printToText(err, res) {
+    	if (err) {
+    		alert("Conversion failed\n" + err);
+    		return;
+    	}
+    	var obj = JSON.parse(JSON.stringify(res, null, 2));
+    	regions = obj.body.regions;
+    	var result = '';
+    	for (var a = 0; a < regions.length; a++) {
+        	lines = regions[a].lines;
+        	for (var i = 0; i < lines.length; i++) {
+            	sentence ="";
+            	words = lines[i].words;
+            	for (var j = 0; j < words.length; j++) {
+                	result += words[j].text + " ";
+            	}
+            	result += '\n';
+        	}
+    	}
+    	document.getElementById("displayText").value = result;
+    	prepareDownload();
+     	$("#conversionStatus").val("Conversion complete.");
+	}
+    
+   	/**
+   	 * To convert handwriting to text: takes an error and result from first API call.
+   	 * If there was an error, alert the user.
+   	 * Otherwise, retreive text from second API call, display the text on the screen,
+   	 * prepare for the file download, and update the conversion status.
+   	 */
+    function handToText(err, res) {
+
+                if (err) {
+                	
+                	alert("Conversion failed.")
+
+                    console.log(err);
+
+                } else {
+                    // Note: The response may not be immediately available. Handwriting recognition is an
+                    // async operation that can take a variable amount of time depending on the length
+                    // of the text you want to recognize. You may need to wait or retry this GET operation.
+                    //
+                    // Wait ten seconds before making the second REST API call.
+
+                    setTimeout(function () {
+
+                        // The "Operation-Location" in the response contains the URI to retrieve the recognized text.
+                        var operationLocation = res.xhr.getResponseHeader("Operation-Location");
+
+                        // Perform the second REST API call and get the response.
+                        $.ajax({
+                            url: operationLocation,
+
+                            // Request headers.
+                            beforeSend: function(jqXHR){
+                                jqXHR.setRequestHeader("Content-Type","application/json");
+                                jqXHR.setRequestHeader("Ocp-Apim-Subscription-Key", handKey);
+                            },
+
+                            type: "GET",
+                        })
+
+                            .done(function(data) {
+                               	var obj = JSON.parse(JSON.stringify(data, null, 2));
+                                var lines = obj.recognitionResult.lines;
+                                
+                                var result = '';
+
+                                for(var i = 0; i < lines.length; i+=1) {
+                                    var line = lines[i];
+                                    result += line.text + '\n';
+                                }
+                               	$("#displayText").val(result);
+                               	prepareDownload();
+                             	$("#conversionStatus").val("Conversion complete.");
+                            })
+
+                            .fail(function(jqXHR, textStatus, errorThrown) {
+                                // Display error message.
+                                var errorString = (errorThrown === "") ? "Error. " : errorThrown + " (" + jqXHR.status + "): ";
+                                errorString += (jqXHR.responseText === "") ? "" : (jQuery.parseJSON(jqXHR.responseText).message) ?
+                                    jQuery.parseJSON(jqXHR.responseText).message : jQuery.parseJSON(jqXHR.responseText).error.message;
+                                alert(errorString);
+                            });
+                    }, 10000);
+                }
+            }
+	
+	function eraseResult() {
+		document.getElementById("downloadLink").style.display = 'none';
+		document.getElementById("sourceImage").style.display = 'none';
+		document.getElementById("displayText").value = '';
+	}
+
+    /**
+     * takes a file (binary)
+     * reads and displays it on the "sourceImage" element
+     */
+    function displaySourceImage(file) {
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            $('#sourceImage')
+                .attr('src', e.target.result);
+        };
+        reader.readAsDataURL(file);
+    }
+</script>
+</html>
