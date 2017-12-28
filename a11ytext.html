@@ -148,10 +148,10 @@ Multi-page PDFs: only converts first page.
      *	 						in which the file is undefined)
      */
    	function handleFile(file) {
-    	document.getElementById("downloadLink").style.display = 'none';
    		if (file === undefined) {
    			return;
    		}
+   		eraseResult();
         if (file.type === "image/jpeg" || file.type === "image/png") {
             // user uploaded an image
             
@@ -177,7 +177,7 @@ Multi-page PDFs: only converts first page.
      * Otherwise, alert the user of invalid file
      */
    	function handleUrl() {
-   		document.getElementById("downloadLink").style.display = 'none';
+    	eraseResult();
    		var url = document.getElementById("inputImage").value;
    		if (!url.startsWith("http")) {
 			// add http to the beginning of the url, for the case
@@ -269,6 +269,7 @@ Multi-page PDFs: only converts first page.
     		displaySourceImage(image);
         	contentType = "application/octet-stream";
     	}
+    	document.getElementById("sourceImage").style.display = 'block';
 
         // Request parameters.
         var subKey;
@@ -408,6 +409,12 @@ Multi-page PDFs: only converts first page.
                     }, 10000);
                 }
             }
+	
+	function eraseResult() {
+		document.getElementById("downloadLink").style.display = 'none';
+		document.getElementById("sourceImage").style.display = 'none';
+		document.getElementById("displayText").value = '';
+	}
 
     /**
      * takes a file (binary)
