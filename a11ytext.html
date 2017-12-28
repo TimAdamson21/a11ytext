@@ -43,7 +43,7 @@ By Hand<br><br>
 
 Accepts PDFs and images (JPG and PNG).
 <br><br>
-Multi-page PDFS: only converts first page.
+Multi-page PDFs: only converts first page.
 <br><br>
 <input type="text" name="inputImage" id="inputImage" value="https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Atomist_quote_from_Democritus.png/338px-Atomist_quote_from_Democritus.png" />
 <button onclick="handleUrl()">Read image</button>
@@ -171,12 +171,21 @@ Multi-page PDFS: only converts first page.
    	function processPDF(pdfFile) {
    		$("#conversionStatus").val("PDF being converted. Please wait.");
         var formData = new FormData();
+        //var source;
         if (pdfFile === null) {
+        	pdfFile = document.getElementById("inputImage").value;
+        } else {
+        	formData.append('FileName', pdfFile.name);
+        }
+        formData.append('File', pdfFile);
+        /*if (pdfFile === null) {
         	console.log("appending " + document.getElementById("inputImage").value);
         	formData.append('Url', document.getElementById("inputImage").value);
+        	source = "web";
         } else {
         	formData.append('File', pdfFile, pdfFile.name);
-        }
+        	source = "pdf";
+        }*/
         formData.append('JpgQuality', '50');
         formData.append('ImageResolutionH', '200');
         formData.append('ImageResolutionV', '200');
