@@ -6,7 +6,6 @@
     <meta charset="UTF-8">
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/superagent/3.5.2/superagent.min.js"></script>
-	<script src="jquery.fontselect.min.js"></script>
     <link rel="stylesheet" type="text/css" href="a11ytext.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -47,7 +46,7 @@ Accepts PDFs and images (JPG and PNG).
 Multi-page PDFS: only converts first page.
 <br><br>
 <input type="text" name="inputImage" id="inputImage" value="https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Atomist_quote_from_Democritus.png/338px-Atomist_quote_from_Democritus.png" />
-<button onclick="handleFile(null)">Read image</button>
+<button onclick="handleUrl()">Read image</button>
 <br><br>
 <input type="file" id="input" onchange="handleFile(this.files[0])">
 <br><br>
@@ -131,19 +130,35 @@ Multi-page PDFS: only converts first page.
     }
 
    	function handleFile(file) {
-   		
-   		var url = document.getElementById("inputImage").value;
-        if ((file == null && (url.endsWith(".jpg") || url.endsWith(".jpeg") || url.endsWith(".png")))
-        			|| (file != null && (file.type === "image/jpeg" || file.type === "image/png"))) {
+   		if (file === null) {
+   			return;
+   		}
+        if (file.type === "image/jpeg" || file.type === "image/png") {
             // user uploaded an image
             processImage(file);
-        } else if ((file == null && url.endsWith(".pdf")) || (file != null && file.type === "application/pdf")) {
+        } else if (file != null && file.type === "application/pdf") {
             // user uploaded a pdf
             processPDF(file);
         } else {
             alert("Illegal file type.");
         }
     }
+   	
+   	function handleUrl() {
+   		var url = document.getElementById("inputImage").value;
+   		if (!url.startsWith("http")) {
+			// add http to the beginning of the url, for the case
+			// where the url is valid except the beginning
+			document.getElementById("inputImage").value = "http://" + url;
+		}
+   		if (url.endsWith(".jpg") || url.endsWith(".jpeg") || url.endsWith(".png")) {
+   			processImage(null);
+   		} else if (url.endsWith(".pdf")) {
+   			processPDF(null);
+   		} else {
+   			alert("Illegal file type");
+   		}
+   	}
    	
    	function urlToDownloadName(url) {
 	  	return url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf(".")) + ".txt";
@@ -194,16 +209,17 @@ Multi-page PDFS: only converts first page.
     	var downloadName;
     	var contentType;
     	if (image == null) {
+    		var sourceImageUrl = document.getElementById("inputImage").value;   		
     		// display image
-    		var sourceImageUrl = document.getElementById("inputImage").value;
     		document.querySelector("#sourceImage").src = sourceImageUrl;
     		downloadName = urlToDownloadName(sourceImageUrl);
-    		image = '{"url": "' + sourceImageUrl + '"}';
     		
+    		image = '{"url": "' + sourceImageUrl + '"}';
+    		contentType = "application/json";
     	} else {
     		displaySourceImage(image);
         	downloadName = fileToDownloadName(image.name);
-        	
+        	contentType = "application/octet-stream";
     	}
     	// set the download attribute to be used when "download" is clicked
     	document.getElementById("downloadLink").download = downloadName;
@@ -213,7 +229,6 @@ Multi-page PDFS: only converts first page.
         var params;
         var uriAdd;
         var processFunc;
-        contentType = "application/octet-stream";
         if (document.getElementById("handwritingCheck").checked) {
         	subKey = handKey;
         	console.log("checked");
@@ -270,6 +285,10 @@ Multi-page PDFS: only converts first page.
     }
     
     function processPrint(err, data) {
+    	if (err) {
+    		alert("Conversion failed\n" + err);
+    		return;
+    	}
     	console.log(data);
     	var obj = JSON.parse(JSON.stringify(data, null, 2));
     	regions = obj.body.regions;

@@ -134,7 +134,7 @@ input:checked + .slider:before {
 
   #sourceImage {
 
-    width: 100%; /*can be in percentage also.*/
+    width: 95%; /*can be in percentage also.*/
     height: auto;
     margin: 0 auto;
     padding: 10px;
