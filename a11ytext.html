@@ -6,6 +6,7 @@
     <meta charset="UTF-8">
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/superagent/3.5.2/superagent.min.js"></script>
+	<script src="jquery.fontselect.min.js"></script>
     <link rel="stylesheet" type="text/css" href="a11ytext.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -17,23 +18,14 @@
   <div class="row content">
     <div class="col-sm-2 sidenav">
 
-		Contrast<br>
+		Contrast
+		<br>
         <label class="switch">
-
             <input id ="myCheck" type="checkbox" onclick="changeContrast()">
             <span class="slider round"></span>
-        </label><br>
-
-		Font Size<br>
-        <div>
-            <button class="btn btn-primary" id ="increaseFont" onclick="changeFontSize(3)">+</button>
-            <button class="btn btn-primary" id ="decreaseFont" onclick="changeFontSize(-3)">-</button>
-        </div><br>
-
-        <div id ="fontChange">
-        <button type="button" onclick="changeFont()">Font Type</button>
-        </div>
-        <br>
+        </label>
+        <br><br>
+        
         <textarea readonly id="conversionStatus" style="width:100%; height:100px;"></textarea>
     </div>
     
@@ -51,6 +43,8 @@ Print
 By Hand<br><br>
 
 Accepts PDFs and images (JPG and PNG).
+<br><br>
+Multi-page PDFS: only converts first page.
 <br><br>
 <input type="text" name="inputImage" id="inputImage" value="https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Atomist_quote_from_Democritus.png/338px-Atomist_quote_from_Democritus.png" />
 <button onclick="handleFile(null)">Read image</button>
@@ -74,6 +68,8 @@ Accepts PDFs and images (JPG and PNG).
 </body>
 
 <script type="text/javascript">
+	
+
 
 	//**********************************************
 	// *** Update or verify the subscription keys' string values with your valid subscription keys for each service. ***
@@ -90,13 +86,13 @@ Accepts PDFs and images (JPG and PNG).
     // NOTE: Free trial subscription keys are generated in the westcentralus region, so if you are using
     // a free trial subscription key, you should not need to change this region.
     var uriBase = "https://westcentralus.api.cognitive.microsoft.com/vision/v1.0/";
-
+    
 	/*
 	 * changes the contrast back and forth between the text/background being
 	 * black/white respectively
 	 */
     function changeContrast() {
-        var checkBox = document.getElementById("myCheck");
+		var checkBox = document.getElementById("myCheck");
         var textArea = document.getElementById("displayText");
         if(checkBox.checked) {
             textArea.style.backgroundColor = "black";
@@ -104,34 +100,6 @@ Accepts PDFs and images (JPG and PNG).
         } else {
             textArea.style.backgroundColor = "white";
             textArea.style.color = "black";
-        }
-    }
-
-    /*
-     *  changes the text-box font size by "delta" points
-     */
-    function changeFontSize(delta) {
-        var textArea = document.getElementById("displayText");
-        style = window.getComputedStyle(textArea, null).getPropertyValue('font-size');
-        currentSize = parseFloat(style);
-        textArea.style.fontSize = (currentSize + delta) + 'px';
-    }
-
-    /**
-     *  toggles through four popular fonts
-     *  TODO: allow for any standard font
-     *  TODO: get rid of duplicated code
-     */
-    function changeFont() {
-        var fon = document.getElementById("displayText");
-        if (fon.className == "arial") {
-          fon.className = 'roman';
-        } else if (fon.className == "roman"){
-          fon.className = 'helvetica';
-        } else if (fon.className == "helvetica") {
-          fon.className = 'calibri';
-        } else {
-          fon.className = 'arial';
         }
     }
 
