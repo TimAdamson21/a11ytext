@@ -171,21 +171,12 @@ Multi-page PDFs: only converts first page.
    	function processPDF(pdfFile) {
    		$("#conversionStatus").val("PDF being converted. Please wait.");
         var formData = new FormData();
-        //var source;
         if (pdfFile === null) {
         	pdfFile = document.getElementById("inputImage").value;
         } else {
         	formData.append('FileName', pdfFile.name);
         }
         formData.append('File', pdfFile);
-        /*if (pdfFile === null) {
-        	console.log("appending " + document.getElementById("inputImage").value);
-        	formData.append('Url', document.getElementById("inputImage").value);
-        	source = "web";
-        } else {
-        	formData.append('File', pdfFile, pdfFile.name);
-        	source = "pdf";
-        }*/
         formData.append('JpgQuality', '50');
         formData.append('ImageResolutionH', '200');
         formData.append('ImageResolutionV', '200');
@@ -201,11 +192,9 @@ Multi-page PDFs: only converts first page.
             contentType: false,
             method: 'POST',
             success: function(data) {
-            	// pdf conversion successful
-            	// process the first page
+            	// pdf conversion successful, so process the JPG of the first page
             	var urlString = "data:text/plain;base64," + data.Files[0].FileData;
                 var file = dataURLtoFile(urlString, pdfFile.name);
-                console.log(file);
                 processImage(file);
             }
         })
@@ -244,7 +233,6 @@ Multi-page PDFs: only converts first page.
         var processFunc;
         if (document.getElementById("handwritingCheck").checked) {
         	subKey = handKey;
-        	console.log("checked");
         	params = {
                 "handwriting": "true",
             };
@@ -252,8 +240,6 @@ Multi-page PDFs: only converts first page.
         	processFunc = processHand;
         } else {
         	subKey = ocrKey;
-        	//contentType = "application/json";
-        	console.log("unchecked");
         	params = {
                 "language": "unk",
                 "detectOrientation ": "true",
@@ -267,17 +253,6 @@ Multi-page PDFs: only converts first page.
         // the other to retrieve the text found in the image.
         //
         // Perform the first REST API call to submit the image for processing.
-        
-        /*superagent
-            .post(uriBase + uriAdd + $.param(params))
-
-            .set("Content-Type", contentType)
-
-            .set("Ocp-Apim-Subscription-Key", subKey)
-
-            .send(image)
-
-            .then(processFunc);*/
 
         superagent
             .post(uriBase + uriAdd + $.param(params))
@@ -302,7 +277,6 @@ Multi-page PDFs: only converts first page.
     		alert("Conversion failed\n" + err);
     		return;
     	}
-    	console.log(data);
     	var obj = JSON.parse(JSON.stringify(data, null, 2));
     	regions = obj.body.regions;
     	var result = '';
@@ -390,13 +364,6 @@ Multi-page PDFs: only converts first page.
                 .attr('src', e.target.result);
         };
         reader.readAsDataURL(file);
-    }
-    
-    function processOnlineImage(){
-        var sourceImageUrl = document.getElementById("displayText").value;
-        console.log(sourceImageUrl);
-        var imageData = '{"url": ' + '"' + sourceImageUrl + '"}'
-        processImage(imageData);
     }
 </script>
 </html>
