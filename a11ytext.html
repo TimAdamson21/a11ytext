@@ -73,8 +73,7 @@ Multi-page PDFs: only converts first page.
 	//**********************************************
 	// *** Update or verify the subscription keys' string values with your valid subscription keys for each service. ***
 	// **********************************************
-	var handKey = "77a01c5eff1f47c4812a001a082c7728";
-	var ocrKey = "fe66b70c2b2e45b4a7cb2a39b001e17e";
+	var subKey = "3a7bbf9d9a01440f921be938e591b274";
 
     // Replace or verify the region.
     //
@@ -272,19 +271,16 @@ Multi-page PDFs: only converts first page.
     	document.getElementById("sourceImage").style.display = 'block';
 
         // Request parameters.
-        var subKey;
         var params;
         var uriAdd;
         var processFunc;
         if (document.getElementById("handwritingCheck").checked) {
-        	subKey = handKey;
         	params = {
                 "handwriting": "true",
             };
         	uriAdd = "RecognizeText?";
         	processFunc = handToText;
         } else {
-        	subKey = ocrKey;
         	params = {
                 "language": "unk",
                 "detectOrientation ": "true",
