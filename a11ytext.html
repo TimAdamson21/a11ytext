@@ -73,7 +73,7 @@ Multi-page PDFs: only converts first page.
 	//**********************************************
 	// *** Update or verify the subscription keys' string values with your valid subscription keys for each service. ***
 	// **********************************************
-	var subKey = "3a7bbf9d9a01440f921be938e591b274";
+	var subKey = "21d07175a90e4c06aecad901b631ab4d";
 
     // Replace or verify the region.
     //
@@ -374,7 +374,7 @@ Multi-page PDFs: only converts first page.
                             // Request headers.
                             beforeSend: function(jqXHR){
                                 jqXHR.setRequestHeader("Content-Type","application/json");
-                                jqXHR.setRequestHeader("Ocp-Apim-Subscription-Key", handKey);
+                                jqXHR.setRequestHeader("Ocp-Apim-Subscription-Key", subKey);
                             },
 
                             type: "GET",
